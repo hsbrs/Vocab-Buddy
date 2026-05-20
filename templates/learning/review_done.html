@@ -1,7 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="p-4">
-  <h3>No more items to review.</h3>
-  <a href="{% url 'learning:index' %}">Back</a>
+<div class="mx-auto w-full max-w-3xl p-4">
+  {% if cefr_with_counts %}
+    <div class="mb-6">
+      <div class="flex gap-2 overflow-x-auto pb-2">
+        <a href="{% url 'learning:review_start' %}" class="px-4 py-2 rounded-lg transition-colors {% if not selected_level %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">All ({{ total_words }})</a>
+        {% for level, label, count in cefr_with_counts %}
+          <a href="{% url 'learning:review_start' %}?level={{ level }}" class="px-4 py-2 rounded-lg transition-colors {% if selected_level == level %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">{{ level }} ({{ count }})</a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="rounded-lg border border-border bg-card p-6 shadow-sm">
+    <h3 class="text-xl font-semibold text-foreground">No items to review{% if selected_level %} for {{ selected_level }}{% endif %}.</h3>
+    <p class="mt-2 text-muted-foreground" style="font-size:14px;">Choose another level or add more vocabulary.</p>
+    <a href="{% url 'learning:index' %}" class="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-white hover:opacity-95" style="font-size:14px; font-weight:500;">Back</a>
+  </div>
 </div>
 {% endblock %}

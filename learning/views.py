@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 from Vocab_Buddy.streaks import get_user_streak_days
+from grammar.models import GrammarPracticeSession
 from words.models import UserWord, Word
 from .forms import ReviewForm, QuizAnswerForm
 from .models import QuizResult, ReviewSession
@@ -23,6 +24,7 @@ def home(request):
         total_words = len(uwords)
         mastered_words = 0
         review_due = 0
+        grammar_practiced = GrammarPracticeSession.objects.filter(user=request.user).values('topic').distinct().count()
         streak_days = get_user_streak_days(request.user)
         for uw in uwords:
             try:
@@ -38,7 +40,33 @@ def home(request):
             {'label': 'Total Words', 'value': total_words, 'color': 'bg-primary'},
             {'label': 'Words Mastered', 'value': mastered_words, 'color': 'bg-success'},
             {'label': 'Study Streak', 'value': f'🔥 {streak_days} day streak' if streak_days else '🔥 Start your streak', 'color': 'bg-accent'},
-            {'label': 'Review Due', 'value': review_due, 'color': 'bg-chart-4'},
+            {'label': 'Grammar Practiced', 'value': grammar_practiced, 'color': 'bg-chart-4'},
+        ]
+        compact_stats = [
+            {'label': 'Words', 'value': total_words},
+            {'label': 'Mastered', 'value': mastered_words},
+            {'label': 'Grammar', 'value': grammar_practiced},
+            {'label': 'Due', 'value': review_due},
+        ]
+        today_plan = [
+            {
+                'label': 'Review flashcards',
+                'detail': f'{review_due or total_words} ready',
+                'done': total_words > 0 and review_due == 0,
+                'href': reverse('learning:review_start'),
+            },
+            {
+                'label': 'Practice grammar',
+                'detail': 'One short topic',
+                'done': grammar_practiced > 0,
+                'href': reverse('grammar:topic_list'),
+            },
+            {
+                'label': 'Add a new word',
+                'detail': 'Grow your deck',
+                'done': total_words > 0,
+                'href': reverse('words:add_word'),
+            },
         ]
         today = timezone.localdate()
         start_day = today - timedelta(days=6)
@@ -73,6 +101,13 @@ def home(request):
             'weekly_total': weekly_total,
             'weekly_start_label': start_day.strftime('%b %d'),
             'weekly_end_label': today.strftime('%b %d'),
+            'total_words': total_words,
+            'mastered_words': mastered_words,
+            'review_due': review_due,
+            'grammar_practiced': grammar_practiced,
+            'streak_days': streak_days,
+            'compact_stats': compact_stats,
+            'today_plan': today_plan,
         })
 
     return render(request, 'home.html', context)
@@ -84,7 +119,6 @@ def _parse_examples(raw_examples):
 
 
 def _parse_verb_forms(raw_text):
-    rows = []
     meta = {
         'verb': '',
         'meaning': '',
@@ -137,12 +171,113 @@ def _parse_verb_forms(raw_text):
     }
 
 
+def _grammar_hint_for_word(word, is_verb, verb_forms_data):
+    text = (word.word or '').strip()
+    lower_text = text.lower()
+
+    if is_verb:
+        meta = (verb_forms_data or {}).get('meta', {})
+        verb_type = (meta.get('type') or '').lower()
+        verb = meta.get('verb') or text
+
+        if 'modal' in verb_type or lower_text in {'koennen', 'können', 'muessen', 'müssen', 'wollen', 'sollen', 'duerfen', 'dürfen', 'moegen', 'mögen'}:
+            return {
+                'title': 'Grammar Focus: Modal Verb',
+                'topic_slug': 'modal-verbs',
+                'topic_label': 'Practice Modal Verbs',
+                'bullets': [
+                    f'{verb} is a modal verb.',
+                    'The conjugated modal verb stays in position 2.',
+                    'The main action verb goes to the end in infinitive form.',
+                ],
+                'pattern': 'Subject + modal verb + details + infinitive',
+                'example': 'Ich darf heute Deutsch lernen. - I am allowed to learn German today.' if lower_text in {'duerfen', 'dürfen'} else 'Ich kann heute Deutsch lernen. - I can learn German today.',
+            }
+
+        if 'separable' in verb_type:
+            return {
+                'title': 'Grammar Focus: Separable Verb',
+                'topic_slug': 'separable-verbs',
+                'topic_label': 'Practice Separable Verbs',
+                'bullets': [
+                    f'{verb} is used like a separable verb.',
+                    'The conjugated stem goes in position 2.',
+                    'The prefix moves to the end of the main clause.',
+                ],
+                'pattern': 'Subject + verb stem + details + prefix',
+                'example': 'Ich stehe um sieben Uhr auf. - I get up at seven.',
+            }
+
+        return {
+            'title': 'Grammar Focus: Verb Position',
+            'topic_slug': 'verb-position-main-clauses',
+            'topic_label': 'Practice Verb Position',
+            'bullets': [
+                f'{verb} is a verb, so word order matters.',
+                'In a main clause, the conjugated verb is usually in position 2.',
+                'A time phrase can come first, but the verb still stays second.',
+            ],
+            'pattern': 'First idea + conjugated verb + subject + details',
+            'example': 'Heute lerne ich Deutsch. - Today I am learning German.',
+        }
+
+    if lower_text.startswith(('der ', 'die ', 'das ')):
+        return {
+            'title': 'Grammar Focus: Article and Gender',
+            'topic_slug': 'definite-articles',
+            'topic_label': 'Practice Articles',
+            'bullets': [
+                'German nouns should be learned with their article.',
+                'The article shows grammatical gender: der, die, or das.',
+                'The article can change when the noun is used in a different case.',
+            ],
+            'pattern': 'article + noun',
+            'example': 'Das Buch ist neu. - The book is new.',
+        }
+
+    return {
+        'title': 'Grammar Focus: Cases',
+        'topic_slug': 'nominative-accusative',
+        'topic_label': 'Practice Cases',
+        'bullets': [
+            'Think about the role this word plays in the sentence.',
+            'Subjects use nominative case.',
+            'Direct objects usually use accusative case.',
+        ],
+        'pattern': 'subject + verb + direct object',
+        'example': 'Der Mann sieht den Hund. - The man sees the dog.',
+    }
+
+
 @login_required
 def review_start(request):
     """Start review session with per-word learning content."""
-    uwords_qs = UserWord.objects.filter(user=request.user).select_related('word')
+    selected_level = request.GET.get('level', '').strip().upper()
+    valid_levels = [level for level, _label in Word.CEFR_LEVELS]
+    if selected_level not in valid_levels:
+        selected_level = ''
+
+    base_qs = UserWord.objects.filter(user=request.user).select_related('word')
+    counts_by_level = {
+        level: base_qs.filter(word__cefr_level=level).count()
+        for level in valid_levels
+    }
+    total_words = base_qs.count()
+    cefr_with_counts = [
+        (level, label, counts_by_level.get(level, 0))
+        for level, label in Word.CEFR_LEVELS
+    ]
+
+    uwords_qs = base_qs
+    if selected_level:
+        uwords_qs = uwords_qs.filter(word__cefr_level=selected_level)
+
     if not uwords_qs.exists():
-        return render(request, 'learning/review_done.html')
+        return render(request, 'learning/review_done.html', {
+            'selected_level': selected_level,
+            'cefr_with_counts': cefr_with_counts,
+            'total_words': total_words,
+        })
 
     level_map = {'A1': 0, 'A2': 1, 'B1': 2, 'B2': 3, 'C1': 4, 'C2': 5}
     cards = []
@@ -158,6 +293,7 @@ def review_start(request):
         verb_forms_raw = uw.word.verb_forms or ''
         is_verb = uw.word.is_verb or bool(verb_forms_raw)
         verb_forms_data = _parse_verb_forms(verb_forms_raw) if is_verb and verb_forms_raw else None
+        grammar_hint = _grammar_hint_for_word(uw.word, is_verb, verb_forms_data)
 
         cards.append({
             'pk': uw.pk,
@@ -168,6 +304,7 @@ def review_start(request):
             'examples': examples,
             'is_verb': is_verb,
             'verb_forms_data': verb_forms_data,
+            'grammar_hint': grammar_hint,
         })
 
     import json
@@ -177,6 +314,9 @@ def review_start(request):
         'uwords': uwords_qs,
         'cards_json_str': cards_json_str,
         'cards': cards,
+        'selected_level': selected_level,
+        'cefr_with_counts': cefr_with_counts,
+        'total_words': total_words,
     }
     return render(request, 'learning/review_session.html', context)
 

@@ -64,6 +64,31 @@ document.addEventListener('DOMContentLoaded', function () {
     list.innerHTML = items.map((line) => `<li class="rounded-md bg-white/70 px-3 py-2 border border-green-100">${escapeHtml(line)}</li>`).join('');
   }
 
+  function renderGrammarHint(hint) {
+    const section = document.getElementById('grammar-hint-section');
+    const title = document.getElementById('grammar-hint-title');
+    const bullets = document.getElementById('grammar-hint-bullets');
+    const pattern = document.getElementById('grammar-hint-pattern');
+    const example = document.getElementById('grammar-hint-example');
+    const link = document.getElementById('grammar-hint-link');
+    if (!section || !title || !bullets || !pattern || !example || !link) return;
+
+    if (!hint) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+    title.textContent = hint.title || 'Grammar Hint';
+    bullets.innerHTML = (hint.bullets || [])
+      .map((item) => `<li class="rounded-md bg-white/70 px-3 py-2 border border-blue-100">${escapeHtml(item)}</li>`)
+      .join('');
+    pattern.innerHTML = hint.pattern ? `<span class="font-semibold">Pattern:</span> ${escapeHtml(hint.pattern)}` : '';
+    example.innerHTML = hint.example ? `<span class="font-semibold">Example:</span> ${escapeHtml(hint.example)}` : '';
+    link.textContent = hint.topic_label || 'Practice Grammar';
+    link.href = hint.topic_slug ? `/grammar/${encodeURIComponent(hint.topic_slug)}/` : '/grammar/';
+  }
+
   function fitFlashcardText(el) {
     if (!el) return;
     const baseSize = 48;
@@ -149,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
       verbSection.classList.toggle('hidden', !currentCard.is_verb);
     }
     renderExamples(currentCard.examples || []);
+    renderGrammarHint(currentCard.grammar_hint);
     if (currentCard.is_verb && currentCard.verb_forms_data && currentCard.verb_forms_data.meta && summaryBody && presentBody && perfectBody && pastBody) {
       const data = currentCard.verb_forms_data;
       const meta = data.meta || {};

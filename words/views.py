@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from grammar.models import GrammarTopic
 from .models import Word, UserWord
 from .forms import AddWordForm
 
@@ -117,11 +118,26 @@ def add_word(request):
 def word_detail(request, pk):
     """View details of a specific word"""
     user_word = get_object_or_404(UserWord, pk=pk, user=request.user)
+    grammar_topics = []
+
+    if user_word.word.is_verb:
+        grammar_topics.extend(GrammarTopic.objects.filter(slug__in=[
+            'verb-position-main-clauses',
+            'separable-verbs',
+            'modal-verbs',
+        ]))
+    else:
+        grammar_topics.extend(GrammarTopic.objects.filter(slug__in=[
+            'definite-articles',
+            'nominative-accusative',
+            'dative-case',
+        ])[:2])
     
     context = {
         'user_word': user_word,
         'word': user_word.word,
         'accuracy': user_word.get_accuracy(),
+        'grammar_topics': grammar_topics,
     }
     return render(request, 'words/word_detail.html', context)
 

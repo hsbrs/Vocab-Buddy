@@ -44,6 +44,17 @@
                 </div>
             {% endif %}
 
+            {% if grammar_topics %}
+                <div class="mt-6 rounded-lg border border-gray-200 p-6">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Related Grammar</h3>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        {% for topic in grammar_topics %}
+                            <a href="{% url 'grammar:topic_detail' topic.slug %}" class="rounded-md bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">{{ topic.title }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="flex space-x-4 mt-8">
                 <a href="{% url 'words:delete_word' user_word.pk %}" class="rounded-md bg-red-600 px-6 py-2 text-white font-medium hover:bg-red-700">
                     🗑️ Remove Word
