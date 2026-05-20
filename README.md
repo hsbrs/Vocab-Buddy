@@ -150,6 +150,27 @@ python manage.py runserver
 
 The app will be available at `http://localhost:8000`
 
+### Docker Production Image
+The repository includes a production-ready `Dockerfile` that runs migrations, collects static files, and starts Gunicorn.
+
+Required production environment variables:
+```bash
+GROQ_API_KEY=your_groq_api_key_here
+SECRET_KEY=your_generated_django_secret
+DEBUG=False
+ALLOWED_HOSTS=your.domain.example
+CSRF_TRUSTED_ORIGINS=https://your.domain.example
+SQLITE_PATH=/app/data/db.sqlite3
+SECURE_SSL_REDIRECT=True
+SECURE_HSTS_SECONDS=0
+```
+
+Build and run example:
+```bash
+docker build -t vocab-buddy:latest .
+docker run --env-file .env -v vocab-buddy-data:/app/data -p 8000:8000 vocab-buddy:latest
+```
+
 ### Production Deployment
 See [FRONTEND_DEPLOYMENT.md](FRONTEND_DEPLOYMENT.md) for detailed production setup instructions including:
 - Gunicorn configuration
@@ -294,6 +315,7 @@ Vocab-Buddy/
 ### Deployment
 - **Gunicorn**: WSGI application server
 - **WhiteNoise**: Static file serving (production)
+- **Docker**: Containerized production runtime
 - **Nginx**: Reverse proxy and load balancer (recommended)
 
 ---
