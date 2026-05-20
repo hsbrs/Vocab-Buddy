@@ -27,4 +27,5 @@ urlpatterns = [
     path('auth/', include('authentication.urls')),
     path('words/', include('words.urls')),
     path('learning/', include('learning.urls')),
+    path('grammar/', include('grammar.urls')),
 ]

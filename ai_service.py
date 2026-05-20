@@ -2,6 +2,7 @@
 AI Service wrapper for Groq integration
 """
 import os
+import json
 from groq import Groq
 from django.conf import settings
 
@@ -189,3 +190,40 @@ Here is the word to analyze:
             model="llama-3.3-70b-versatile",
         )
         return chat_completion.choices[0].message.content
+
+    def check_grammar(self, sentence):
+        """Analyze a German sentence and return structured grammar feedback."""
+        prompt = """You are a German grammar coach for language learners.
+Analyze the user's German sentence. If the sentence is not German or is empty, still return JSON and explain the issue.
+
+Return ONLY valid JSON with these exact keys:
+{
+  "original": "<the user's sentence>",
+  "corrected": "<corrected German sentence>",
+  "is_correct": true or false,
+  "cefr_level": "A1/A2/B1/B2/C1/C2",
+  "topic": "<main grammar topic involved>",
+  "explanation": "<short learner-friendly explanation in English>",
+  "mistakes": ["<mistake 1>", "<mistake 2>"],
+  "examples": ["<German example> - <English translation>", "<German example> - <English translation>"]
+}
+
+Rules:
+- Keep explanations concise and practical.
+- If the sentence is already correct, explain why it works.
+- Do not wrap the JSON in markdown.
+
+Sentence:
+"""
+        chat_completion = self.client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": prompt + sentence,
+                },
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+        )
+        content = chat_completion.choices[0].message.content
+        return json.loads(content)
