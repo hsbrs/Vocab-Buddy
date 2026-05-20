@@ -2,6 +2,7 @@
 /.env
 /.env.local
 /.venv/
+/AGENTS.md
 vocab_buddy.db
 vocab_buddy.log
 /staticfiles/
