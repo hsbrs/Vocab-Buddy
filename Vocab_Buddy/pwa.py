@@ -42,14 +42,9 @@ def manifest(request):
 
 def service_worker(request):
     assets_to_cache = [
-        reverse('home'),
-        reverse('learning:review_start'),
-        reverse('words:word_list'),
-        reverse('words:add_word'),
-        reverse('learning:quiz_start'),
         static('css/fonts.css'),
         static('css/theme.css'),
-        f"{static('js/ui.js')}?v=3",
+        f"{static('js/ui.js')}?v=4",
         f"{static('js/verb-panel.js')}?v=1",
         static('icons/icon-192.png'),
         static('icons/icon-512.png'),
@@ -57,7 +52,7 @@ def service_worker(request):
     ]
 
     script = f"""
-const CACHE_NAME = 'vocab-buddy-pwa-v1';
+const CACHE_NAME = 'vocab-buddy-pwa-v3';
 const ASSETS = {json.dumps(assets_to_cache)};
 
 self.addEventListener('install', (event) => {{
@@ -78,6 +73,14 @@ self.addEventListener('activate', (event) => {{
 
 self.addEventListener('fetch', (event) => {{
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  const isStaticAsset = url.pathname.startsWith('/static/');
+
+  if (!isStaticAsset) {{
+    event.respondWith(fetch(event.request));
+    return;
+  }}
 
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {{

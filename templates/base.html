@@ -67,10 +67,10 @@
         body { background-color: var(--background); color: var(--foreground); }
     </style>
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=2">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-background flex flex-col min-h-screen">
+<body class="bg-background flex flex-col min-h-screen app-shell">
         <!-- App Header (matches frontend layout) -->
         <header class="bg-card border-b border-border sticky top-0 z-50 flex-shrink-0">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2">
@@ -97,12 +97,13 @@
                 </div>
 
                 <!-- Tabs -->
-                <nav class="flex flex-nowrap gap-1.5 overflow-x-auto">
+                <nav class="hidden md:flex flex-nowrap gap-1.5 overflow-x-auto">
                     <a href="{% url 'home' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all {% if request.resolver_match.url_name == 'home' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-secondary{% endif %}" style="font-size:14px; white-space:nowrap;">Home</a>
                     <a href="{% url 'learning:review_start' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all {% if request.resolver_match.url_name == 'review_start' or request.resolver_match.url_name == 'review_next' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-secondary{% endif %}" style="font-size:14px; white-space:nowrap;">Flash Cards</a>
                     <a href="{% url 'words:word_list' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all {% if request.resolver_match.url_name == 'word_list' or request.resolver_match.url_name == 'word_detail' or request.resolver_match.url_name == 'delete_word' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-secondary{% endif %}" style="font-size:14px; white-space:nowrap;">Vocabulary</a>
                     <a href="{% url 'words:add_word' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all {% if request.resolver_match.url_name == 'add_word' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-secondary{% endif %}" style="font-size:14px; white-space:nowrap;">Add Word</a>
                     <a href="{% url 'learning:quiz_start' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all {% if request.resolver_match.url_name == 'quiz_start' or request.resolver_match.url_name == 'quiz_question' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-secondary{% endif %}" style="font-size:14px; white-space:nowrap;">Quiz</a>
+                    <a href="{% url 'grammar:topic_list' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all {% if request.resolver_match.app_name == 'grammar' %}bg-primary text-primary-foreground{% else %}text-foreground hover:bg-secondary{% endif %}" style="font-size:14px; white-space:nowrap;">Grammar</a>
                 </nav>
             </div>
         </header>
@@ -126,6 +127,31 @@
     <main class="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4">
         {% block content %}{% endblock %}
     </main>
+
+    {% if user.is_authenticated %}
+        <nav class="mobile-bottom-nav md:hidden">
+            <a href="{% url 'home' %}" class="mobile-bottom-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+                <span class="mobile-bottom-icon">⌂</span>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'learning:review_start' %}" class="mobile-bottom-link {% if request.resolver_match.app_name == 'learning' and request.resolver_match.url_name != 'quiz_start' and request.resolver_match.url_name != 'quiz_question' and request.resolver_match.url_name != 'quiz_results' %}is-active{% endif %}">
+                <span class="mobile-bottom-icon">▣</span>
+                <span>Review</span>
+            </a>
+            <a href="{% url 'words:add_word' %}" class="mobile-bottom-link {% if request.resolver_match.url_name == 'add_word' %}is-active{% endif %}">
+                <span class="mobile-bottom-icon">＋</span>
+                <span>Add</span>
+            </a>
+            <a href="{% url 'grammar:topic_list' %}" class="mobile-bottom-link {% if request.resolver_match.app_name == 'grammar' %}is-active{% endif %}">
+                <span class="mobile-bottom-icon">Aa</span>
+                <span>Grammar</span>
+            </a>
+            <a href="{% url 'words:word_list' %}" class="mobile-bottom-link {% if request.resolver_match.app_name == 'words' and request.resolver_match.url_name != 'add_word' %}is-active{% endif %}">
+                <span class="mobile-bottom-icon">≡</span>
+                <span>Words</span>
+            </a>
+        </nav>
+    {% endif %}
 
     <!-- Footer -->
     {% block footer %}
@@ -157,7 +183,7 @@
     {% endblock %}
 
     {% block extra_js %}{% endblock %}
-    <script src="{% static 'js/ui.js' %}?v=3"></script>
+    <script src="{% static 'js/ui.js' %}?v=4"></script>
     <script src="{% static 'js/verb-panel.js' %}?v=1"></script>
         <script>
             if ('serviceWorker' in navigator) {
