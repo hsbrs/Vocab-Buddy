@@ -6,7 +6,7 @@
 [![PWA](https://img.shields.io/badge/PWA-Ready-blueviolet.svg)](#pwa-support)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modern Django web application designed to help users learn German vocabulary through spaced repetition, interactive flashcard review, AI-powered language validation, personalized quizzes, and a responsive mobile-first interface with PWA support.
+A modern Django web application designed to help users learn German vocabulary and grammar through spaced repetition, interactive flashcard review, AI-powered language validation, grammar coaching, personalized quizzes, and a responsive mobile-first interface with PWA support.
 
 ## 📋 Table of Contents
 
@@ -32,18 +32,24 @@ A modern Django web application designed to help users learn German vocabulary t
 - **Automatic CEFR Classification**: Words categorized by proficiency level (A1–C2)
 - **Example Sentences**: AI-generated contextual examples for each word
 - **Verb Conjugations**: Automatic parsing and storage of all verb forms (present, past, perfect)
-- **Interactive Flashcards**: Flip-based card system with examples and verb conjugations
+- **Interactive Flashcards**: Flip-based card system with examples, CEFR badges, verb conjugations, grammar hints, and level filtering
 - **Spaced Repetition Algorithm**: Intelligent word selection based on mastery level and review frequency
 - **Multiple-Choice Quizzes**: Test knowledge with randomized questions and instant feedback
+- **Grammar Curriculum**: A1/A2 grammar topics with explanations, examples, and focused practice exercises
+- **Grammar Progress Tracking**: Topic progress states and saved exercise attempts per user
+- **AI Grammar Coach**: Submit German sentences for correction, mistake notes, CEFR estimates, and better examples
 
 ### 📊 Dashboard & Analytics
 - **Weekly Progress Chart**: Visual bar chart showing words added each day over the past week
+- **Daily Learning Dashboard**: Mobile-first home screen with next actions, compact stats, and a daily plan
 - **Study Streak**: Track consecutive days of vocabulary practice
-- **Learning Statistics**: Total words, mastered words, and words due for review
+- **Learning Statistics**: Total words, mastered words, grammar practice, and review activity
 - **Personal Vocabulary List**: Browse, search, and manage your word collection
 
 ### 📱 User Interface
 - **Responsive Design**: Mobile-first layout that works on all devices
+- **Mobile Bottom Navigation**: One-thumb access to Home, Review, Add Word, Grammar, and Vocabulary
+- **Collapsible Review Panels**: Examples, grammar hints, and verb forms stay available without overwhelming mobile screens
 - **Tailwind CSS Styling**: Modern, accessible interface matching the original frontend theme
 - **Server-Rendered Templates**: Fast, SEO-friendly Django templates (no JS framework required)
 - **Keyboard-Friendly**: Full keyboard navigation support for accessibility
@@ -58,6 +64,7 @@ A modern Django web application designed to help users learn German vocabulary t
 - **Groq LLM**: Fast, cost-effective AI via Groq's language models
 - **Language Detection**: Validates German vs. non-German input
 - **Structured Parsing**: Extracts word metadata (translation, CEFR level, examples, verb forms)
+- **Grammar Feedback**: Produces structured sentence corrections, grammar topics, mistakes, and examples
 - **Fallback Verb Detection**: Automatic retry with enhanced prompts for verb forms
 - **Persistence**: AI-generated data stored at creation time for reliable rendering
 
@@ -81,19 +88,19 @@ A modern Django web application designed to help users learn German vocabulary t
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/armin2080/Vocab-Buddy.git
+git clone https://github.com/hsbrs/Vocab-Buddy.git
 cd Vocab-Buddy
 ```
 
 ### 2. Create and Activate Virtual Environment
 ```bash
-python -m venv .env
+python -m venv .venv
 
 # macOS/Linux
-source .env/bin/activate
+source .venv/bin/activate
 
 # Windows
-.env\Scripts\activate
+.venv\Scripts\activate
 ```
 
 ### 3. Install Dependencies
@@ -184,24 +191,28 @@ Edit `Vocab_Buddy/settings.py` to customize:
 ### Getting Started
 1. **Create Account**: Register with username and password
 2. **Add Words**: Click "Add Word" and enter German words
-3. **Review Vocabulary**: Use "Flash Cards" to review words with spaced repetition
-4. **Take Quizzes**: Test knowledge with "Quiz" mode
-5. **Track Progress**: View your "Home" dashboard for weekly progress and streak
+3. **Review Vocabulary**: Use "Flash Cards" to review words with spaced repetition, CEFR filters, grammar hints, and verb forms
+4. **Practice Grammar**: Open "Grammar" for topic lessons, exercises, and progress tracking
+5. **Use Grammar Coach**: Submit German sentences for AI correction and examples
+6. **Take Quizzes**: Test knowledge with "Quiz" mode
+7. **Track Progress**: View your "Home" dashboard for daily actions, weekly progress, and streak
 
 ### Typical Learning Workflow
 ```
-Register → Add German Words → Review with Flashcards → Take Quizzes → Track Progress
+Register → Add German Words → Review with Flashcards → Practice Grammar → Use Grammar Coach → Track Progress
 ```
 
 ### Key Pages
 
 | Page | Description |
 |------|-------------|
-| **Home** | Dashboard with weekly progress chart, study streak, and learning stats |
-| **Flash Cards** | Interactive spaced repetition review session with examples and verb forms |
+| **Home** | Mobile-first daily dashboard with review actions, compact stats, plan, and weekly progress |
+| **Flash Cards** | Interactive spaced repetition review session with CEFR filters, examples, grammar hints, and verb forms |
 | **Quiz** | Multiple-choice questions from your vocabulary (4+ words required) |
 | **Vocabulary** | Browse, search, and manage your word collection |
 | **Add Word** | Add new German words (AI extracts translation, CEFR level, examples, verb forms) |
+| **Grammar** | A1/A2 grammar topic library with lessons, exercises, and progress |
+| **Grammar Coach** | AI sentence correction with mistakes, CEFR estimate, topic, and better examples |
 
 ---
 
@@ -232,11 +243,18 @@ Vocab-Buddy/
 │   ├── forms.py              # Review and quiz forms
 │   ├── scheduler.py          # Spaced repetition algorithm
 │   └── urls.py
+├── grammar/                  # Grammar lessons, exercises, progress, coach history
+│   ├── models.py             # Topic, exercise, practice session, coach models
+│   ├── views.py              # Topic library, practice flow, AI coach
+│   ├── admin.py              # Admin editing for grammar content
+│   ├── migrations/           # Schema and starter A1/A2 grammar content
+│   └── urls.py
 ├── templates/                # Server-rendered HTML templates
 │   ├── base.html             # Base layout with header and navigation
-│   ├── home.html             # Dashboard with weekly chart and stats
+│   ├── home.html             # Mobile-first daily learning dashboard
 │   ├── authentication/       # Login and registration
 │   ├── words/                # Word list, add word forms
+│   ├── grammar/              # Grammar topics, exercises, coach
 │   └── learning/             # Flashcard and quiz templates
 ├── static/                   # CSS, JavaScript, icons
 │   ├── css/
@@ -286,7 +304,7 @@ Vocab Buddy is a Progressive Web App (PWA) and can be installed on mobile and de
 
 ### Features
 - **Installable**: Add to home screen on Android, iOS, and desktop browsers
-- **Offline Support**: Service worker caches critical assets and pages
+- **Offline Support**: Service worker caches static assets without caching CSRF-protected HTML pages
 - **App Icon**: Custom 192×192 and 512×512 icons from your logo
 - **Splash Screen**: Branded loading experience
 - **Theme Color**: Custom theme color for address bar
