@@ -118,6 +118,49 @@ def _parse_examples(raw_examples):
     return lines[:2]
 
 
+def _noun_examples(word):
+    noun = word.noun_text()
+    nominative_article = word.nominative_article()
+    accusative_article = word.accusative_article()
+    if not noun or not nominative_article:
+        return []
+
+    if word.gender == 'plural' or word.article == 'plural':
+        return [
+            {
+                'before': '',
+                'article': 'Die',
+                'colored': noun,
+                'after': ' sind neu.',
+                'translation': f'The {word.translation} are new.',
+            },
+            {
+                'before': 'Ich sehe ',
+                'article': accusative_article,
+                'colored': noun,
+                'after': '.',
+                'translation': f'I see the {word.translation}.',
+            },
+        ]
+
+    return [
+        {
+            'before': '',
+            'article': nominative_article[:1].upper() + nominative_article[1:],
+            'colored': noun,
+            'after': ' ist neu.',
+            'translation': f'The {word.translation} is new.',
+        },
+        {
+            'before': 'Ich sehe ',
+            'article': accusative_article,
+            'colored': noun,
+            'after': '.',
+            'translation': f'I see the {word.translation}.',
+        },
+    ]
+
+
 def _parse_verb_forms(raw_text):
     meta = {
         'verb': '',
@@ -176,19 +219,21 @@ def _grammar_hint_for_word(word, is_verb, verb_forms_data):
     lower_text = text.lower()
 
     if word.part_of_speech == 'noun':
-        article_label = word.article if word.article in {'der', 'die', 'das'} else 'die' if word.gender == 'plural' else 'the article'
+        display_word = word.display_word()
+        sentence_display_word = display_word[:1].upper() + display_word[1:] if display_word else display_word
+        article_label = word.nominative_article() if word.nominative_article() in {'der', 'die', 'das'} else 'the article'
         gender_label = word.gender or 'noun gender'
         return {
             'title': 'Grammar Focus: Article and Gender',
             'topic_slug': 'definite-articles',
             'topic_label': 'Practice Articles',
             'bullets': [
-                f'{word.display_word()} is a noun.',
+                f'{sentence_display_word} is a noun.',
                 f'Learn it with {article_label}; this marks {gender_label}.',
                 'The article can change when the noun is used in a different case.',
             ],
             'pattern': 'article + noun',
-            'example': f'{word.display_word()} ist wichtig. - {word.translation} is important.',
+            'example': f'{sentence_display_word} ist neu. - The {word.translation} is new.',
         }
 
     if is_verb:
@@ -336,6 +381,7 @@ def review_start(request):
         weight = 1 + incorrect * 3 + level_weight
 
         examples = _parse_examples(uw.word.example_sentences or '')
+        example_structures = _noun_examples(uw.word) if uw.word.part_of_speech == 'noun' else []
         verb_forms_raw = uw.word.verb_forms or ''
         is_verb = uw.word.is_verb or bool(verb_forms_raw)
         verb_forms_data = _parse_verb_forms(verb_forms_raw) if is_verb and verb_forms_raw else None
@@ -350,10 +396,14 @@ def review_start(request):
             'part_of_speech_label': uw.word.get_part_of_speech_display() if uw.word.part_of_speech else '',
             'article': uw.word.article,
             'gender': uw.word.gender,
+            'noun_text': uw.word.noun_text(),
+            'nominative_article': uw.word.nominative_article(),
+            'accusative_article': uw.word.accusative_article(),
             'category': uw.word.category,
             'article_color_key': uw.word.article_color_key(),
             'weight': weight,
             'examples': examples,
+            'example_structures': example_structures,
             'is_verb': is_verb,
             'verb_forms_data': verb_forms_data,
             'grammar_hint': grammar_hint,

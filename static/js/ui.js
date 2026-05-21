@@ -61,6 +61,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const list = document.getElementById('card-examples');
     if (!list) return;
     const items = Array.isArray(lines) ? lines.slice(0, 2) : [];
+    const structured = currentCard && Array.isArray(currentCard.example_structures) ? currentCard.example_structures : [];
+
+    if (structured.length) {
+      list.innerHTML = structured.map((item) => {
+        const article = item.article || '';
+        const prefix = article ? escapeHtml(article.charAt(0)) : '';
+        const rest = article.length > 1 ? escapeHtml(article.slice(1)) : '';
+        return `
+          <li class="noun-example-line rounded-md bg-white/70 px-3 py-2 border border-green-100">
+            <div>
+              <span class="example-muted">${escapeHtml(item.before || '')}</span><span class="article-prefix">${prefix}</span><span class="article-colored ${articleClass(currentCard)}">${rest}</span>${article ? ' ' : ''}<span class="article-colored ${articleClass(currentCard)}">${escapeHtml(item.colored || '')}</span><span class="example-muted">${escapeHtml(item.after || '')}</span>
+            </div>
+            <div class="example-translation">${escapeHtml(item.translation || '')}</div>
+          </li>
+        `;
+      }).join('');
+      return;
+    }
+
     list.innerHTML = items.map((line) => `<li class="rounded-md bg-white/70 px-3 py-2 border border-green-100">${escapeHtml(line)}</li>`).join('');
   }
 
@@ -97,10 +116,16 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderLanguageMeta(card) {
     const meta = document.getElementById('card-language-meta');
     const badge = document.getElementById('card-meta-badge');
+    const pluralBadge = document.getElementById('card-plural-badge');
     const front = document.getElementById('card-front');
     if (!card) return;
 
     if (badge) badge.textContent = card.part_of_speech_label || '';
+    if (pluralBadge) {
+      const isPlural = card.part_of_speech === 'noun' && (card.gender === 'plural' || card.article === 'plural');
+      pluralBadge.classList.toggle('hidden', !isPlural);
+      pluralBadge.classList.toggle('article-plural-badge', isPlural);
+    }
     if (front) {
       front.classList.remove('article-der', 'article-die', 'article-das', 'article-plural');
       const cls = articleClass(card);
@@ -125,6 +150,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     meta.classList.remove('hidden');
     meta.innerHTML = `<div class="flex flex-wrap gap-3">${parts.join('')}</div>`;
+  }
+
+  function renderCardFront(card) {
+    if (!card) return '';
+    if (card.part_of_speech !== 'noun' || !card.nominative_article || !card.noun_text) {
+      return escapeHtml(card.front || '');
+    }
+    const article = card.nominative_article;
+    const prefix = escapeHtml(article.charAt(0));
+    const rest = escapeHtml(article.slice(1));
+    const noun = escapeHtml(card.noun_text);
+    const colorClass = articleClass(card);
+    return `<span class="article-display"><span class="article-token"><span class="article-prefix">${prefix}</span><span class="article-colored ${colorClass}">${rest}</span></span><span class="article-colored ${colorClass}">${noun}</span></span>`;
   }
 
   function fitFlashcardText(el) {
@@ -204,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const presentBody = document.getElementById('verb-present-body');
     const perfectBody = document.getElementById('verb-perfect-body');
     const pastBody = document.getElementById('verb-past-body');
-    frontEl.textContent = currentCard.front;
+    frontEl.innerHTML = renderCardFront(currentCard);
     backEl.textContent = currentCard.back;
     renderLanguageMeta(currentCard);
     fitCurrentFlashcardText();

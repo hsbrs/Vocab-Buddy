@@ -8,7 +8,10 @@
 
             <h2 class="text-4xl font-bold text-gray-900 mt-4 mb-2">
                 {% if word.part_of_speech == 'noun' and word.article %}
-                    <span class="article-word article-{{ word.article_color_key }}">{{ word.display_word }}</span>
+                    <span class="article-word">
+                        <span class="article-prefix">{{ word.article_prefix }}</span><span class="article-colored article-{{ word.article_color_key }}">{{ word.article_rest }}</span>
+                        <span class="article-colored article-{{ word.article_color_key }}">{{ word.noun_text }}</span>
+                    </span>
                 {% else %}
                     {{ word.word }}
                 {% endif %}

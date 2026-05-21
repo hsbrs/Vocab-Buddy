@@ -229,19 +229,19 @@
 }
 
 .article-der {
-  color: #2f9e62;
+  color: #4fa86f;
 }
 
 .article-das {
-  color: #7c4da3;
+  color: #8754a0;
 }
 
 .article-die {
-  color: #f08a3c;
+  color: #f48b45;
 }
 
 .article-plural {
-  color: #ef4f65;
+  color: #f05263;
 }
 
 .article-pill {
@@ -254,19 +254,19 @@
 }
 
 .article-pill.article-der.is-selected {
-  background: #2f9e62;
+  background: #4fa86f;
 }
 
 .article-pill.article-das.is-selected {
-  background: #7c4da3;
+  background: #8754a0;
 }
 
 .article-pill.article-die.is-selected {
-  background: #f08a3c;
+  background: #f48b45;
 }
 
 .article-pill.article-plural.is-selected {
-  background: #ef4f65;
+  background: #f05263;
 }
 
 #card-front.article-der,
@@ -274,6 +274,83 @@
 #card-front.article-das,
 #card-front.article-plural {
   background: color-mix(in srgb, currentColor 8%, white);
+}
+
+.article-display {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.16em;
+}
+
+.article-token {
+  display: inline-flex;
+  gap: 0;
+}
+
+.article-prefix {
+  color: var(--foreground);
+}
+
+.article-colored {
+  color: currentColor;
+}
+
+.article-colored.article-der {
+  color: #4fa86f;
+}
+
+.article-colored.article-das {
+  color: #8754a0;
+}
+
+.article-colored.article-die {
+  color: #f48b45;
+}
+
+.article-colored.article-plural {
+  color: #f05263;
+}
+
+#card-front .article-prefix {
+  color: var(--foreground);
+}
+
+#card-front .article-colored.article-der {
+  color: #4fa86f;
+}
+
+#card-front .article-colored.article-das {
+  color: #8754a0;
+}
+
+#card-front .article-colored.article-die {
+  color: #f48b45;
+}
+
+#card-front .article-colored.article-plural {
+  color: #f05263;
+}
+
+.article-plural-badge {
+  border: 1px solid #f05263;
+  background: rgba(240, 82, 99, 0.1);
+  color: #f05263;
+}
+
+.noun-example-line {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.example-muted {
+  color: #b8bec6;
+}
+
+.example-translation {
+  color: var(--muted-foreground);
+  font-size: 0.86rem;
+  font-style: italic;
 }
 
 .mobile-bottom-nav {

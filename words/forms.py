@@ -112,6 +112,13 @@ class AddWordForm(forms.Form):
             if part_of_speech != 'noun':
                 article = ''
                 gender = ''
+            if part_of_speech == 'noun':
+                for prefix in ('der ', 'die ', 'das '):
+                    if word.lower().startswith(prefix):
+                        word = word[len(prefix):].strip()
+                        break
+                if word:
+                    word = word[:1].upper() + word[1:]
 
             return {
                 'parsed_word': word,

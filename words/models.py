@@ -71,13 +71,38 @@ class Word(models.Model):
 
     def display_word(self):
         if self.part_of_speech == 'noun' and self.article in {'der', 'die', 'das'}:
-            clean_word = self.word
-            for prefix in ('der ', 'die ', 'das '):
-                if clean_word.lower().startswith(prefix):
-                    clean_word = clean_word[len(prefix):].strip()
-                    break
-            return f'{self.article} {clean_word}'.strip()
+            return f'{self.article} {self.noun_text()}'.strip()
         return self.word
+
+    def noun_text(self):
+        clean_word = (self.word or '').strip()
+        for prefix in ('der ', 'die ', 'das '):
+            if clean_word.lower().startswith(prefix):
+                clean_word = clean_word[len(prefix):].strip()
+                break
+        if self.part_of_speech == 'noun' and clean_word:
+            return clean_word[:1].upper() + clean_word[1:]
+        return clean_word
+
+    def nominative_article(self):
+        if self.gender == 'plural' or self.article == 'plural':
+            return 'die'
+        return self.article
+
+    def article_prefix(self):
+        article = self.nominative_article()
+        return article[:1] if article else ''
+
+    def article_rest(self):
+        article = self.nominative_article()
+        return article[1:] if len(article) > 1 else ''
+
+    def accusative_article(self):
+        if self.gender == 'plural' or self.article == 'plural':
+            return 'die'
+        if self.article == 'der':
+            return 'den'
+        return self.article
 
     def article_color_key(self):
         if self.part_of_speech != 'noun':

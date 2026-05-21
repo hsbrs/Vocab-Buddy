@@ -63,7 +63,10 @@
                     <div class="mb-2">
                         <div class="text-foreground mb-1" style="font-size:18px; font-weight:600;">
                             {% if user_word.word.part_of_speech == 'noun' and user_word.word.article %}
-                                <span class="article-word article-{{ user_word.word.article_color_key }}">{{ user_word.word.display_word }}</span>
+                                <span class="article-word">
+                                    <span class="article-prefix">{{ user_word.word.article_prefix }}</span><span class="article-colored article-{{ user_word.word.article_color_key }}">{{ user_word.word.article_rest }}</span>
+                                    <span class="article-colored article-{{ user_word.word.article_color_key }}">{{ user_word.word.noun_text }}</span>
+                                </span>
                             {% else %}
                                 {{ user_word.word.word }}
                             {% endif %}
