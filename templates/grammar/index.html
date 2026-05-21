@@ -15,6 +15,35 @@
         <a href="{% url 'grammar:coach' %}" class="inline-flex rounded-lg bg-primary px-4 py-2 text-white hover:opacity-95" style="font-size:14px; font-weight:500;">Grammar Coach</a>
     </div>
 
+    <section class="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-foreground">Grammar from your words</h2>
+                <p class="mt-1 text-muted-foreground" style="font-size:14px;">Practice grammar using vocabulary already saved in your deck.</p>
+            </div>
+            <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">Personal practice</span>
+        </div>
+        <div class="grid gap-3 md:grid-cols-3">
+            {% for item in personal_practice %}
+                <div class="rounded-lg border border-border p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">{{ item.level }}</span>
+                            <h3 class="mt-3 font-semibold text-foreground">{{ item.title }}</h3>
+                        </div>
+                        <span class="rounded-md {% if item.count %}bg-primary text-white{% else %}bg-secondary text-muted-foreground{% endif %} px-2 py-1" style="font-size:12px;">{{ item.count }}</span>
+                    </div>
+                    <p class="mt-2 text-muted-foreground" style="font-size:13px;">{{ item.summary }}</p>
+                    {% if item.count %}
+                        <a href="{{ item.href }}" class="mt-4 inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:600;">Practice</a>
+                    {% else %}
+                        <a href="{% url 'words:add_word' %}" class="mt-4 inline-flex rounded-lg border border-border bg-card px-3 py-2 text-foreground hover:bg-secondary" style="font-size:13px; font-weight:600;">Add words</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
     <div class="space-y-5">
         {% for group in topics_by_level %}
             {% if group.topics %}

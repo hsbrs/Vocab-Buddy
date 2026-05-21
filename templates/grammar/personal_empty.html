@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ practice.title }} - Vocab Buddy{% endblock %}
+
+{% block content %}
+<div class="mx-auto w-full max-w-2xl rounded-lg border border-border bg-card p-5 text-center shadow-sm">
+    <a href="{% url 'grammar:topic_list' %}" class="text-primary hover:opacity-80" style="font-size:14px;">Back to Grammar</a>
+    <h1 class="mt-3 text-2xl font-semibold text-foreground">{{ practice.title }}</h1>
+    <p class="mt-2 text-muted-foreground" style="font-size:14px;">This practice needs matching words in your vocabulary first.</p>
+    <a href="{% url 'words:add_word' %}" class="mt-5 inline-flex rounded-lg bg-primary px-4 py-2 text-white hover:opacity-95" style="font-size:14px; font-weight:600;">Add Words</a>
+</div>
+{% endblock %}
