@@ -205,6 +205,13 @@ def _is_valid_german_noun_example(word, german):
     return any(phrase.lower() in lower_german for phrase in _noun_phrase_candidates(word))
 
 
+def _contains_noun_text(word, german):
+    noun = (word.noun_text() or '').strip()
+    if not noun or not german:
+        return False
+    return noun.lower() in german.lower()
+
+
 def _structure_noun_example(word, german, english=''):
     lower_german = german.lower()
 
@@ -220,6 +227,18 @@ def _structure_noun_example(word, german, english=''):
             'after': german[index + len(phrase):],
             'translation': english,
         }
+
+    noun = word.noun_text()
+    if noun:
+        index = lower_german.find(noun.lower())
+        if index != -1:
+            return {
+                'before': german[:index],
+                'article': '',
+                'colored': german[index:index + len(noun)],
+                'after': german[index + len(noun):],
+                'translation': english,
+            }
 
     return {
         'german': german,
@@ -275,7 +294,7 @@ def _noun_examples(word):
     useful_lines = []
     for line in lines:
         german, _english = _split_example_line(line)
-        if not _is_generic_noun_example(line) and _is_valid_german_noun_example(word, german):
+        if not _is_generic_noun_example(line) and _contains_noun_text(word, german):
             useful_lines.append(line)
 
     if len(useful_lines) < 2:
