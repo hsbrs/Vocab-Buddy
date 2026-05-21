@@ -14,10 +14,42 @@ class Word(models.Model):
         ('C1', 'C1 - Advanced'),
         ('C2', 'C2 - Proficient'),
     ]
+
+    PARTS_OF_SPEECH = [
+        ('adjective', 'Adjective'),
+        ('adverb', 'Adverb'),
+        ('conjunction', 'Conjunction'),
+        ('interjection', 'Interjection'),
+        ('noun', 'Noun'),
+        ('number', 'Number'),
+        ('preposition', 'Preposition'),
+        ('pronoun', 'Pronoun'),
+        ('verb', 'Verb'),
+    ]
+
+    ARTICLE_CHOICES = [
+        ('', 'No article'),
+        ('der', 'der'),
+        ('die', 'die'),
+        ('das', 'das'),
+        ('plural', 'plural die'),
+    ]
+
+    GENDER_CHOICES = [
+        ('', 'None'),
+        ('masculine', 'Masculine'),
+        ('feminine', 'Feminine'),
+        ('neuter', 'Neuter'),
+        ('plural', 'Plural'),
+    ]
     
     word = models.CharField(max_length=255, unique=True)
     translation = models.TextField()
     cefr_level = models.CharField(max_length=2, choices=CEFR_LEVELS)
+    part_of_speech = models.CharField(max_length=20, choices=PARTS_OF_SPEECH, blank=True, default='')
+    article = models.CharField(max_length=10, choices=ARTICLE_CHOICES, blank=True, default='')
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, blank=True, default='')
+    category = models.CharField(max_length=80, blank=True, default='')
     example_sentences = models.TextField(blank=True, default='')
     context_paragraph = models.TextField(blank=True, default='')
     verb_forms = models.TextField(blank=True, default='')
@@ -29,11 +61,30 @@ class Word(models.Model):
         ordering = ['word']
         indexes = [
             models.Index(fields=['cefr_level']),
+            models.Index(fields=['part_of_speech']),
+            models.Index(fields=['article']),
             models.Index(fields=['word']),
         ]
     
     def __str__(self):
         return f"{self.word} ({self.cefr_level})"
+
+    def display_word(self):
+        if self.part_of_speech == 'noun' and self.article in {'der', 'die', 'das'}:
+            clean_word = self.word
+            for prefix in ('der ', 'die ', 'das '):
+                if clean_word.lower().startswith(prefix):
+                    clean_word = clean_word[len(prefix):].strip()
+                    break
+            return f'{self.article} {clean_word}'.strip()
+        return self.word
+
+    def article_color_key(self):
+        if self.part_of_speech != 'noun':
+            return ''
+        if self.gender == 'plural' or self.article == 'plural':
+            return 'plural'
+        return self.article
 
 
 class UserWord(models.Model):

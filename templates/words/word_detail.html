@@ -6,7 +6,13 @@
     <div class="rounded-lg bg-white shadow-md p-8 max-w-2xl mx-auto">
             <a href="{% url 'words:word_list' %}" class="text-blue-600 hover:text-blue-700 mb-4">⬅️ Back to Vocabulary</a>
 
-            <h2 class="text-4xl font-bold text-gray-900 mt-4 mb-2">{{ word.word }}</h2>
+            <h2 class="text-4xl font-bold text-gray-900 mt-4 mb-2">
+                {% if word.part_of_speech == 'noun' and word.article %}
+                    <span class="article-word article-{{ word.article_color_key }}">{{ word.display_word }}</span>
+                {% else %}
+                    {{ word.word }}
+                {% endif %}
+            </h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                 <div class="rounded-lg border border-gray-200 p-6">
@@ -17,6 +23,29 @@
                 <div class="rounded-lg border border-gray-200 p-6">
                     <h3 class="text-sm font-medium text-gray-500 uppercase">CEFR Level</h3>
                     <p class="text-2xl font-bold text-blue-600 mt-2">{{ word.cefr_level }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <div class="rounded-lg border border-gray-200 p-6">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Type</h3>
+                    <p class="text-xl font-bold text-gray-900 mt-2">{{ word.get_part_of_speech_display|default:"Not set" }}</p>
+                </div>
+
+                <div class="rounded-lg border border-gray-200 p-6">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Article / Gender</h3>
+                    <p class="text-xl font-bold text-gray-900 mt-2">
+                        {% if word.part_of_speech == 'noun' %}
+                            {{ word.article|default:"-" }}{% if word.gender %} · {{ word.gender }}{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="rounded-lg border border-gray-200 p-6">
+                    <h3 class="text-sm font-medium text-gray-500 uppercase">Category</h3>
+                    <p class="text-xl font-bold text-gray-900 mt-2">{{ word.category|default:"Not set" }}</p>
                 </div>
             </div>
 

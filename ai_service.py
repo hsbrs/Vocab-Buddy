@@ -34,11 +34,19 @@ CRITICAL RULES:
 8. If it's an adverb, return it exactly as the adverb
 9. Provide accurate English translation for the word type given
 10. Assign correct CEFR level (A1, A2, B1, B2, C1, C2)
+11. Classify the part of speech as exactly one of: adjective, adverb, conjunction, interjection, noun, number, preposition, pronoun, verb
+12. For nouns, provide ARTICLE as der, die, das, or plural. For all other words, use none
+13. For nouns, provide GENDER as masculine, feminine, neuter, or plural. For all other words, use none
+14. Provide one short learner category such as Everyday Life, Food & Drink, House & Home, Work & Study, Time, People, Travel, Nature, Body, or Grammar Function
 
 FORMAT for German words:
 WORD: <exact word as given>
 TRANSLATION: <English translation>
 CEFR: <A1/A2/B1/B2/C1/C2>
+PART_OF_SPEECH: <part of speech>
+ARTICLE: <der/die/das/plural/none>
+GENDER: <masculine/feminine/neuter/plural/none>
+CATEGORY: <short category>
 EXAMPLES:
 1. <German example sentence> - <English translation>
 2. <German example sentence> - <English translation>

@@ -11,6 +11,18 @@
         <a href="{% url 'learning:review_start' %}?level={{ level }}" class="px-4 py-2 rounded-lg transition-colors {% if selected_level == level %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">{{ level }} ({{ count }})</a>
       {% endfor %}
     </div>
+    <div class="mt-2 flex gap-2 overflow-x-auto pb-2">
+      <a href="{% url 'learning:review_start' %}" class="px-3 py-2 rounded-lg transition-colors {% if not selected_pos %}bg-secondary text-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:13px; white-space:nowrap;">All types</a>
+      {% for value, label, count in pos_with_counts %}
+        <a href="{% url 'learning:review_start' %}?pos={{ value }}" class="px-3 py-2 rounded-lg transition-colors {% if selected_pos == value %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:13px; white-space:nowrap;">{{ label }} ({{ count }})</a>
+      {% endfor %}
+    </div>
+    <div class="flex gap-2 overflow-x-auto pb-2">
+      <span class="px-3 py-2 text-muted-foreground" style="font-size:13px; white-space:nowrap;">Articles</span>
+      {% for value, label, count in article_with_counts %}
+        <a href="{% url 'learning:review_start' %}?pos=noun&article={{ value }}" class="article-pill article-{{ value }} px-3 py-2 rounded-lg transition-colors {% if selected_article == value %}is-selected{% endif %}" style="font-size:13px; white-space:nowrap;">{{ label }} ({{ count }})</a>
+      {% endfor %}
+    </div>
   </div>
 
   <!-- Progress -->
@@ -26,14 +38,17 @@
 
   <!-- Flashcard Display -->
   <div id="card-container" class="relative w-full h-96 perspective-1000 mb-6">
-    <div id="card-flip-zone" class="absolute inset-0" style="cursor:pointer">
-      <div id="card-level-badge" class="absolute top-4 left-4 z-20 rounded-md bg-primary px-3 py-1 text-sm font-semibold text-white shadow-sm">{% if cards and cards.0.level %}{{ cards.0.level }}{% else %}LEVEL{% endif %}</div>
-      <div id="card-inner" class="absolute inset-0 rounded-2xl" style="transform-style:preserve-3d;">
+      <div id="card-flip-zone" class="absolute inset-0" style="cursor:pointer">
+        <div id="card-level-badge" class="absolute top-4 left-4 z-20 rounded-md bg-primary px-3 py-1 text-sm font-semibold text-white shadow-sm">{% if cards and cards.0.level %}{{ cards.0.level }}{% else %}LEVEL{% endif %}</div>
+        <div id="card-meta-badge" class="absolute top-4 right-4 z-20 rounded-md bg-secondary px-3 py-1 text-sm font-semibold text-foreground shadow-sm">{% if cards and cards.0.part_of_speech_label %}{{ cards.0.part_of_speech_label }}{% endif %}</div>
+        <div id="card-inner" class="absolute inset-0 rounded-2xl" style="transform-style:preserve-3d;">
         <div id="card-front" class="flashcard-face absolute inset-0 bg-card rounded-2xl border-2 border-primary shadow-lg flex items-center justify-center backface-hidden" style="transform:rotateY(0deg); -webkit-backface-visibility:hidden; backface-visibility:hidden;">{% if cards and cards.0.front %}{{ cards.0.front }}{% endif %}</div>
         <div id="card-back" class="flashcard-face absolute inset-0 rounded-2xl border-2 border-primary shadow-lg flex items-center justify-center backface-hidden" style="transform:rotateY(180deg); -webkit-backface-visibility:hidden; backface-visibility:hidden; color:white; background: linear-gradient(135deg, var(--primary, #3b82f6), rgba(59, 130, 246, 0.5));">{% if cards and cards.0.back %}{{ cards.0.back }}{% endif %}</div>
       </div>
     </div>
   </div>
+
+  <div id="card-language-meta" class="mb-4 hidden rounded-lg border border-border bg-card p-3 text-sm text-foreground"></div>
 
   <!-- Controls -->
   <div class="review-controls flex items-center justify-center gap-2 sm:gap-4 mb-6">

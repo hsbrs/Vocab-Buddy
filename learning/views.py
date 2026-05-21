@@ -175,6 +175,22 @@ def _grammar_hint_for_word(word, is_verb, verb_forms_data):
     text = (word.word or '').strip()
     lower_text = text.lower()
 
+    if word.part_of_speech == 'noun':
+        article_label = word.article if word.article in {'der', 'die', 'das'} else 'die' if word.gender == 'plural' else 'the article'
+        gender_label = word.gender or 'noun gender'
+        return {
+            'title': 'Grammar Focus: Article and Gender',
+            'topic_slug': 'definite-articles',
+            'topic_label': 'Practice Articles',
+            'bullets': [
+                f'{word.display_word()} is a noun.',
+                f'Learn it with {article_label}; this marks {gender_label}.',
+                'The article can change when the noun is used in a different case.',
+            ],
+            'pattern': 'article + noun',
+            'example': f'{word.display_word()} ist wichtig. - {word.translation} is important.',
+        }
+
     if is_verb:
         meta = (verb_forms_data or {}).get('meta', {})
         verb_type = (meta.get('type') or '').lower()
@@ -257,6 +273,15 @@ def review_start(request):
     if selected_level not in valid_levels:
         selected_level = ''
 
+    selected_pos = request.GET.get('pos', '').strip().lower()
+    valid_pos = [value for value, _label in Word.PARTS_OF_SPEECH]
+    if selected_pos not in valid_pos:
+        selected_pos = ''
+
+    selected_article = request.GET.get('article', '').strip().lower()
+    if selected_article not in {'der', 'die', 'das', 'plural'}:
+        selected_article = ''
+
     base_qs = UserWord.objects.filter(user=request.user).select_related('word')
     counts_by_level = {
         level: base_qs.filter(word__cefr_level=level).count()
@@ -267,15 +292,36 @@ def review_start(request):
         (level, label, counts_by_level.get(level, 0))
         for level, label in Word.CEFR_LEVELS
     ]
+    pos_with_counts = [
+        (value, label, base_qs.filter(word__part_of_speech=value).count())
+        for value, label in Word.PARTS_OF_SPEECH
+    ]
+    article_with_counts = [
+        ('der', 'der', base_qs.filter(word__article='der').count()),
+        ('das', 'das', base_qs.filter(word__article='das').count()),
+        ('die', 'die', base_qs.filter(word__article='die', word__gender='feminine').count()),
+        ('plural', 'plural die', base_qs.filter(word__gender='plural').count()),
+    ]
 
     uwords_qs = base_qs
     if selected_level:
         uwords_qs = uwords_qs.filter(word__cefr_level=selected_level)
+    if selected_pos:
+        uwords_qs = uwords_qs.filter(word__part_of_speech=selected_pos)
+    if selected_article:
+        if selected_article == 'plural':
+            uwords_qs = uwords_qs.filter(word__gender='plural')
+        else:
+            uwords_qs = uwords_qs.filter(word__article=selected_article)
 
     if not uwords_qs.exists():
         return render(request, 'learning/review_done.html', {
             'selected_level': selected_level,
+            'selected_pos': selected_pos,
+            'selected_article': selected_article,
             'cefr_with_counts': cefr_with_counts,
+            'pos_with_counts': pos_with_counts,
+            'article_with_counts': article_with_counts,
             'total_words': total_words,
         })
 
@@ -297,9 +343,15 @@ def review_start(request):
 
         cards.append({
             'pk': uw.pk,
-            'front': uw.word.word,
+            'front': uw.word.display_word(),
             'back': uw.word.translation,
             'level': uw.word.cefr_level,
+            'part_of_speech': uw.word.part_of_speech,
+            'part_of_speech_label': uw.word.get_part_of_speech_display() if uw.word.part_of_speech else '',
+            'article': uw.word.article,
+            'gender': uw.word.gender,
+            'category': uw.word.category,
+            'article_color_key': uw.word.article_color_key(),
             'weight': weight,
             'examples': examples,
             'is_verb': is_verb,
@@ -315,7 +367,11 @@ def review_start(request):
         'cards_json_str': cards_json_str,
         'cards': cards,
         'selected_level': selected_level,
+        'selected_pos': selected_pos,
+        'selected_article': selected_article,
         'cefr_with_counts': cefr_with_counts,
+        'pos_with_counts': pos_with_counts,
+        'article_with_counts': article_with_counts,
         'total_words': total_words,
     }
     return render(request, 'learning/review_session.html', context)

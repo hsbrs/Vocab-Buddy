@@ -89,6 +89,44 @@ document.addEventListener('DOMContentLoaded', function () {
     link.href = hint.topic_slug ? `/grammar/${encodeURIComponent(hint.topic_slug)}/` : '/grammar/';
   }
 
+  function articleClass(card) {
+    const key = card && card.article_color_key ? card.article_color_key : '';
+    return key ? `article-${key}` : '';
+  }
+
+  function renderLanguageMeta(card) {
+    const meta = document.getElementById('card-language-meta');
+    const badge = document.getElementById('card-meta-badge');
+    const front = document.getElementById('card-front');
+    if (!card) return;
+
+    if (badge) badge.textContent = card.part_of_speech_label || '';
+    if (front) {
+      front.classList.remove('article-der', 'article-die', 'article-das', 'article-plural');
+      const cls = articleClass(card);
+      if (cls) front.classList.add(cls);
+    }
+
+    if (!meta) return;
+    const parts = [];
+    if (card.part_of_speech_label) parts.push(`<span><strong>Type:</strong> ${escapeHtml(card.part_of_speech_label)}</span>`);
+    if (card.part_of_speech === 'noun' && (card.article || card.gender)) {
+      const article = card.gender === 'plural' ? 'die (plural)' : card.article;
+      parts.push(`<span><strong>Article:</strong> ${escapeHtml(article || '')}</span>`);
+      parts.push(`<span><strong>Gender:</strong> ${escapeHtml(card.gender || '')}</span>`);
+    }
+    if (card.category) parts.push(`<span><strong>Category:</strong> ${escapeHtml(card.category)}</span>`);
+
+    if (!parts.length) {
+      meta.classList.add('hidden');
+      meta.innerHTML = '';
+      return;
+    }
+
+    meta.classList.remove('hidden');
+    meta.innerHTML = `<div class="flex flex-wrap gap-3">${parts.join('')}</div>`;
+  }
+
   function fitFlashcardText(el) {
     if (!el) return;
     const baseSize = 48;
@@ -168,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const pastBody = document.getElementById('verb-past-body');
     frontEl.textContent = currentCard.front;
     backEl.textContent = currentCard.back;
+    renderLanguageMeta(currentCard);
     fitCurrentFlashcardText();
     if (verbSection) {
       verbSection.style.display = currentCard.is_verb ? '' : 'none';
