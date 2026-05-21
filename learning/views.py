@@ -179,10 +179,23 @@ def _noun_phrase_candidates(word):
     articles = [
         word.nominative_article(),
         word.accusative_article(),
-        word.nominative_article().capitalize() if word.nominative_article() else '',
-        word.accusative_article().capitalize() if word.accusative_article() else '',
     ]
-    return [f'{article} {noun}' for article in articles if article and noun]
+    if word.gender == 'masculine':
+        articles.extend(['ein', 'einen', 'einem', 'eines'])
+    elif word.gender == 'feminine':
+        articles.extend(['eine', 'einer'])
+    elif word.gender == 'neuter':
+        articles.extend(['ein', 'einem', 'eines'])
+    elif word.gender == 'plural' or word.article == 'plural':
+        articles.extend(['die', 'den'])
+
+    normalized_articles = []
+    for article in articles:
+        if article and article not in normalized_articles:
+            normalized_articles.append(article)
+            normalized_articles.append(article.capitalize())
+
+    return [f'{article} {noun}' for article in normalized_articles if article and noun]
 
 
 def _is_valid_german_noun_example(word, german):
