@@ -67,7 +67,7 @@
         body { background-color: var(--background); color: var(--foreground); }
     </style>
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=4">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-background flex flex-col min-h-screen app-shell">
@@ -183,7 +183,7 @@
     {% endblock %}
 
     {% block extra_js %}{% endblock %}
-    <script src="{% static 'js/ui.js' %}?v=5"></script>
+    <script src="{% static 'js/ui.js' %}?v=6"></script>
     <script src="{% static 'js/verb-panel.js' %}?v=1"></script>
         <script>
             if ('serviceWorker' in navigator) {

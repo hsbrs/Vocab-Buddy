@@ -49,6 +49,7 @@ class Word(models.Model):
     part_of_speech = models.CharField(max_length=20, choices=PARTS_OF_SPEECH, blank=True, default='')
     article = models.CharField(max_length=10, choices=ARTICLE_CHOICES, blank=True, default='')
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, blank=True, default='')
+    plural_form = models.CharField(max_length=255, blank=True, default='')
     category = models.CharField(max_length=80, blank=True, default='')
     example_sentences = models.TextField(blank=True, default='')
     context_paragraph = models.TextField(blank=True, default='')
@@ -110,6 +111,11 @@ class Word(models.Model):
         if self.gender == 'plural' or self.article == 'plural':
             return 'plural'
         return self.article
+
+    def display_plural(self):
+        if self.part_of_speech != 'noun' or not self.plural_form:
+            return ''
+        return self.plural_form[:1].upper() + self.plural_form[1:]
 
 
 class UserWord(models.Model):

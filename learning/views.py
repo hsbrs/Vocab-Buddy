@@ -161,6 +161,83 @@ def _noun_examples(word):
     ]
 
 
+def _noun_grammar_hint(word):
+    display_word = word.display_word()
+    sentence_display_word = display_word[:1].upper() + display_word[1:] if display_word else display_word
+    noun = word.noun_text()
+    article = word.nominative_article()
+    plural = word.display_plural()
+
+    if word.gender == 'plural' or word.article == 'plural':
+        return {
+            'title': 'Grammar Focus: Plural Noun',
+            'topic_slug': 'definite-articles',
+            'topic_label': 'Practice Articles',
+            'bullets': [
+                f'{sentence_display_word} is used as a plural noun.',
+                'Plural nouns use die in nominative and accusative.',
+                'Use plural verb agreement: Die ... sind, not Die ... ist.',
+            ],
+            'pattern': 'die + plural noun + plural verb',
+            'example': f'Die {noun} sind neu. - The {word.translation} are new.',
+        }
+
+    if word.article == 'der':
+        return {
+            'title': 'Grammar Focus: Masculine Accusative',
+            'topic_slug': 'nominative-accusative',
+            'topic_label': 'Practice Cases',
+            'bullets': [
+                f'{sentence_display_word} is masculine: der in nominative.',
+                'When it is the direct object, der changes to den.',
+                f'This is why you say Ich sehe den {noun}.',
+            ],
+            'pattern': 'der + noun as subject, den + noun as direct object',
+            'example': f'Der {noun} ist neu. Ich sehe den {noun}.',
+        }
+
+    if word.article == 'das':
+        return {
+            'title': 'Grammar Focus: Neuter Article',
+            'topic_slug': 'nominative-accusative',
+            'topic_label': 'Practice Cases',
+            'bullets': [
+                f'{sentence_display_word} is neuter: das.',
+                'For neuter nouns, nominative and accusative both stay das.',
+                'That makes das nouns easier in simple subject/object sentences.',
+            ],
+            'pattern': 'das + noun as subject or direct object',
+            'example': f'Das {noun} ist neu. Ich sehe das {noun}.',
+        }
+
+    if word.article == 'die':
+        return {
+            'title': 'Grammar Focus: Feminine Article',
+            'topic_slug': 'nominative-accusative',
+            'topic_label': 'Practice Cases',
+            'bullets': [
+                f'{sentence_display_word} is feminine: die.',
+                'For feminine nouns, nominative and accusative both stay die.',
+                'Do not confuse singular die with plural die; the verb form gives a clue.',
+            ],
+            'pattern': 'die + noun as subject or direct object',
+            'example': f'Die {noun} ist neu. Ich sehe die {noun}.',
+        }
+
+    return {
+        'title': 'Grammar Focus: Noun Pattern',
+        'topic_slug': 'definite-articles',
+        'topic_label': 'Practice Articles',
+        'bullets': [
+            f'{sentence_display_word} is a noun.',
+            'Learn German nouns together with article and plural.',
+            f'Plural: {plural}' if plural else 'Add the plural form when you learn the noun.',
+        ],
+        'pattern': 'article + noun + plural form',
+        'example': f'{sentence_display_word} - plural: {plural}' if plural else sentence_display_word,
+    }
+
+
 def _parse_verb_forms(raw_text):
     meta = {
         'verb': '',
@@ -219,22 +296,7 @@ def _grammar_hint_for_word(word, is_verb, verb_forms_data):
     lower_text = text.lower()
 
     if word.part_of_speech == 'noun':
-        display_word = word.display_word()
-        sentence_display_word = display_word[:1].upper() + display_word[1:] if display_word else display_word
-        article_label = word.nominative_article() if word.nominative_article() in {'der', 'die', 'das'} else 'the article'
-        gender_label = word.gender or 'noun gender'
-        return {
-            'title': 'Grammar Focus: Article and Gender',
-            'topic_slug': 'definite-articles',
-            'topic_label': 'Practice Articles',
-            'bullets': [
-                f'{sentence_display_word} is a noun.',
-                f'Learn it with {article_label}; this marks {gender_label}.',
-                'The article can change when the noun is used in a different case.',
-            ],
-            'pattern': 'article + noun',
-            'example': f'{sentence_display_word} ist neu. - The {word.translation} is new.',
-        }
+        return _noun_grammar_hint(word)
 
     if is_verb:
         meta = (verb_forms_data or {}).get('meta', {})
@@ -396,6 +458,7 @@ def review_start(request):
             'part_of_speech_label': uw.word.get_part_of_speech_display() if uw.word.part_of_speech else '',
             'article': uw.word.article,
             'gender': uw.word.gender,
+            'plural_form': uw.word.display_plural(),
             'noun_text': uw.word.noun_text(),
             'nominative_article': uw.word.nominative_article(),
             'accusative_article': uw.word.accusative_article(),

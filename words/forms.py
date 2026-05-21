@@ -28,6 +28,7 @@ class AddWordForm(forms.Form):
             part_of_speech = ''
             article = ''
             gender = ''
+            plural_form = ''
             category = ''
             examples = []
             verb_forms_lines = []
@@ -59,6 +60,10 @@ class AddWordForm(forms.Form):
                     continue
                 if line.startswith('GENDER:'):
                     gender = line.split(':', 1)[1].strip().lower()
+                    section = None
+                    continue
+                if line.startswith('PLURAL:'):
+                    plural_form = line.split(':', 1)[1].strip()
                     section = None
                     continue
                 if line.startswith('CATEGORY:'):
@@ -99,6 +104,8 @@ class AddWordForm(forms.Form):
                 article = ''
             if gender in {'none', 'n/a'}:
                 gender = ''
+            if plural_form.lower() in {'none', 'n/a', 'not a noun'}:
+                plural_form = ''
             if article not in valid_articles:
                 article = ''
             if gender not in valid_genders:
@@ -112,6 +119,7 @@ class AddWordForm(forms.Form):
             if part_of_speech != 'noun':
                 article = ''
                 gender = ''
+                plural_form = ''
             if part_of_speech == 'noun':
                 for prefix in ('der ', 'die ', 'das '):
                     if word.lower().startswith(prefix):
@@ -119,6 +127,8 @@ class AddWordForm(forms.Form):
                         break
                 if word:
                     word = word[:1].upper() + word[1:]
+                if plural_form:
+                    plural_form = plural_form[:1].upper() + plural_form[1:]
 
             return {
                 'parsed_word': word,
@@ -127,6 +137,7 @@ class AddWordForm(forms.Form):
                 'parsed_part_of_speech': part_of_speech,
                 'parsed_article': article,
                 'parsed_gender': gender,
+                'parsed_plural_form': plural_form,
                 'parsed_category': category,
                 'parsed_example_sentences': '\n'.join([line for line in examples if line][:2]),
                 'parsed_verb_forms': parsed_verb_forms,

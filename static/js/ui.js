@@ -17,9 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let deck = [];
   let deckPos = -1;
   let flipped = false;
-  let autoplayId = null;
   const reviewedSet = new Set();
-  let historyStack = [];
 
   function totalWeight() {
     try {
@@ -139,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const article = card.gender === 'plural' ? 'die (plural)' : card.article;
       parts.push(`<span><strong>Article:</strong> ${escapeHtml(article || '')}</span>`);
       parts.push(`<span><strong>Gender:</strong> ${escapeHtml(card.gender || '')}</span>`);
+      if (card.plural_form) parts.push(`<span><strong>Plural:</strong> ${escapeHtml(card.plural_form)}</span>`);
     }
     if (card.category) parts.push(`<span><strong>Category:</strong> ${escapeHtml(card.category)}</span>`);
 
@@ -230,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function showCardByIndex(i, pushHistory = true) {
     if (!cards.length) return;
-    currentIndex = i % cards.length;
+    currentIndex = ((i % cards.length) + cards.length) % cards.length;
     currentCard = cards[currentIndex];
     flipped = false;
     const frontEl = document.getElementById('card-front');
@@ -274,19 +273,12 @@ document.addEventListener('DOMContentLoaded', function () {
       perfectBody.innerHTML = '';
       pastBody.innerHTML = '';
     }
-    // show level as small label
-    idxEl.textContent = `${reviewedSet.size + 1} / ${cards.length}`;
-    const reviewedPct = Math.round(((reviewedSet.size + 1) / cards.length) * 100);
+    if (currentCard && currentCard.pk) reviewedSet.add(currentCard.pk);
+    const reviewedCount = Math.min(reviewedSet.size, cards.length);
+    idxEl.textContent = `${reviewedCount} / ${cards.length}`;
+    const reviewedPct = Math.min(100, Math.round((reviewedCount / cards.length) * 100));
     if (pctEl) pctEl.textContent = `${reviewedPct}% Complete`;
     document.getElementById('progress-bar').style.width = `${reviewedPct}%`;
-    // mark reviewed
-    if (currentCard && currentCard.pk) reviewedSet.add(currentCard.pk);
-    if (pushHistory) {
-      // avoid pushing duplicate consecutive indices
-      if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== currentIndex) {
-        historyStack.push(currentIndex);
-      }
-    }
     const reviewedInput = document.getElementById('reviewed-pks-input');
     if (reviewedInput) reviewedInput.value = Array.from(reviewedSet).join(',');
     // reset flip state visually
@@ -299,16 +291,13 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function showPreviousCard() {
-    if (!deck.length) return;
-    deckPos = Math.max(0, deckPos - 1);
-    showCardByIndex(deck[deckPos], false);
+    if (!cards.length) return;
+    showCardByIndex(currentIndex <= 0 ? cards.length - 1 : currentIndex - 1, false);
   }
 
   function pickAndShow() {
     if (!cards.length) return;
-    if (!deck.length) buildDeck();
-    deckPos = (deckPos + 1) % deck.length;
-    showCardByIndex(deck[deckPos]);
+    showCardByIndex(currentIndex + 1);
   }
 
   function flipCard() {

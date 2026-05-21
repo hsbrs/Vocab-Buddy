@@ -4,26 +4,49 @@
 <div class="flashcard-review -mx-2 w-auto sm:mx-auto sm:w-full max-w-3xl">
   <h2 class="text-2xl font-bold mb-4">📚 Review Session</h2>
 
-  <div class="mb-6">
-    <div class="flex gap-2 overflow-x-auto pb-2">
-      <a href="{% url 'learning:review_start' %}" class="px-4 py-2 rounded-lg transition-colors {% if not selected_level %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">All ({{ total_words }})</a>
-      {% for level, label, count in cefr_with_counts %}
-        <a href="{% url 'learning:review_start' %}?level={{ level }}" class="px-4 py-2 rounded-lg transition-colors {% if selected_level == level %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">{{ level }} ({{ count }})</a>
-      {% endfor %}
-    </div>
-    <div class="mt-2 flex gap-2 overflow-x-auto pb-2">
-      <a href="{% url 'learning:review_start' %}" class="px-3 py-2 rounded-lg transition-colors {% if not selected_pos %}bg-secondary text-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:13px; white-space:nowrap;">All types</a>
-      {% for value, label, count in pos_with_counts %}
-        <a href="{% url 'learning:review_start' %}?pos={{ value }}" class="px-3 py-2 rounded-lg transition-colors {% if selected_pos == value %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:13px; white-space:nowrap;">{{ label }} ({{ count }})</a>
-      {% endfor %}
-    </div>
-    <div class="flex gap-2 overflow-x-auto pb-2">
-      <span class="px-3 py-2 text-muted-foreground" style="font-size:13px; white-space:nowrap;">Articles</span>
-      {% for value, label, count in article_with_counts %}
-        <a href="{% url 'learning:review_start' %}?pos=noun&article={{ value }}" class="article-pill article-{{ value }} px-3 py-2 rounded-lg transition-colors {% if selected_article == value %}is-selected{% endif %}" style="font-size:13px; white-space:nowrap;">{{ label }} ({{ count }})</a>
-      {% endfor %}
-    </div>
-  </div>
+  <details class="review-filter-panel mb-6 rounded-lg border border-border bg-card p-3 shadow-sm" {% if selected_level or selected_pos or selected_article %}open{% endif %}>
+    <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
+      <div>
+        <div class="font-semibold text-foreground" style="font-size:14px;">Review filters</div>
+        <div class="text-muted-foreground" style="font-size:12px;">{{ cards|length }} cards in this session · {{ total_words }} saved</div>
+      </div>
+      <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">Change</span>
+    </summary>
+
+    <form method="get" class="mt-3 grid gap-3 sm:grid-cols-3">
+      <label class="grid gap-1" style="font-size:13px;">
+        <span class="text-muted-foreground">Level</span>
+        <select name="level" class="rounded-lg border border-input bg-input-background px-3 py-2">
+          <option value="">All levels ({{ total_words }})</option>
+          {% for level, label, count in cefr_with_counts %}
+            <option value="{{ level }}" {% if selected_level == level %}selected{% endif %}>{{ level }} ({{ count }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="grid gap-1" style="font-size:13px;">
+        <span class="text-muted-foreground">Word type</span>
+        <select name="pos" class="rounded-lg border border-input bg-input-background px-3 py-2">
+          <option value="">All types</option>
+          {% for value, label, count in pos_with_counts %}
+            <option value="{{ value }}" {% if selected_pos == value %}selected{% endif %}>{{ label }} ({{ count }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="grid gap-1" style="font-size:13px;">
+        <span class="text-muted-foreground">Noun article</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="submit" name="article" value="" class="rounded-lg border border-border px-2.5 py-2 text-foreground {% if not selected_article %}bg-secondary{% else %}bg-card{% endif %}">Any</button>
+          {% for value, label, count in article_with_counts %}
+            <button type="submit" name="article" value="{{ value }}" class="article-pill article-{{ value }} rounded-lg px-2.5 py-2 {% if selected_article == value %}is-selected{% endif %}">{{ label }} ({{ count }})</button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="sm:col-span-3 flex flex-wrap gap-2">
+        <button type="submit" class="rounded-lg bg-primary px-4 py-2 text-white" style="font-size:14px; font-weight:600;">Apply filters</button>
+        <a href="{% url 'learning:review_start' %}" class="rounded-lg border border-border bg-card px-4 py-2 text-foreground hover:bg-secondary" style="font-size:14px; font-weight:600;">Reset</a>
+      </div>
+    </form>
+  </details>
 
   <!-- Progress -->
   <div class="mb-6">
@@ -142,71 +165,6 @@
 
   <script>
     window.reviewCards = {{ cards_json_str|safe }};
-
-    (function () {
-      const escapeHtml = (value) => String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-
-      const renderVerbPanel = () => {
-        const front = document.getElementById('card-front');
-        const verbSection = document.getElementById('verb-section');
-        const summaryBody = document.getElementById('verb-summary-body');
-        const presentBody = document.getElementById('verb-present-body');
-        const perfectBody = document.getElementById('verb-perfect-body');
-        const pastBody = document.getElementById('verb-past-body');
-        if (!front || !verbSection || !summaryBody || !presentBody || !perfectBody || !pastBody) return;
-
-        const currentFront = front.textContent.trim();
-        const card = (window.reviewCards || []).find((entry) => entry.front === currentFront);
-
-        if (!card || !card.is_verb || !card.verb_forms_data || !card.verb_forms_data.meta) {
-          verbSection.style.display = 'none';
-          verbSection.classList.add('hidden');
-          summaryBody.innerHTML = '';
-          presentBody.innerHTML = '';
-          perfectBody.innerHTML = '';
-          pastBody.innerHTML = '';
-          return;
-        }
-
-        const data = card.verb_forms_data;
-        const meta = data.meta || {};
-        const renderRows = (rows) => (rows || []).map((row) => `<tr class="border-b border-purple-100 last:border-b-0"><td class="px-3 py-2 font-medium">${escapeHtml(row.pronoun || '')}</td><td class="px-3 py-2">${escapeHtml(row.form || '')}</td></tr>`).join('');
-
-        verbSection.style.display = '';
-        verbSection.classList.remove('hidden');
-        summaryBody.innerHTML = `
-          <tr class="border-b border-purple-100"><th class="px-3 py-2 text-left bg-white/70">Verb</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.verb || '')}</td></tr>
-          <tr class="border-b border-purple-100"><th class="px-3 py-2 text-left bg-white/70">Meaning</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.meaning || '')}</td></tr>
-          <tr><th class="px-3 py-2 text-left bg-white/70">Type</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.type || '')}</td></tr>
-        `;
-        presentBody.innerHTML = renderRows(data.present_rows);
-        perfectBody.innerHTML = `
-          <tr class="border-b border-purple-100"><td class="px-3 py-2 font-medium">Participle</td><td class="px-3 py-2">${escapeHtml(meta.participle || '')}</td></tr>
-          <tr><td class="px-3 py-2 font-medium">Auxiliary</td><td class="px-3 py-2">${escapeHtml(meta.auxiliary || '')}</td></tr>
-        `;
-        pastBody.innerHTML = renderRows(data.past_rows);
-      };
-
-      const startObserver = () => {
-        renderVerbPanel();
-        const front = document.getElementById('card-front');
-        if (!front) return;
-        const observer = new MutationObserver(renderVerbPanel);
-        observer.observe(front, { childList: true, characterData: true, subtree: true });
-        setInterval(renderVerbPanel, 250);
-      };
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', startObserver, { once: true });
-      } else {
-        startObserver();
-      }
-    })();
   </script>
 </div>
 {% endblock %}

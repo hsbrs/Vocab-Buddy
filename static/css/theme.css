@@ -418,6 +418,19 @@ details.review-panel > summary::-webkit-details-marker {
   display: none;
 }
 
+details.review-filter-panel > summary {
+  list-style: none;
+}
+
+details.review-filter-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-filter-panel select,
+.review-filter-panel button {
+  min-height: 2.5rem;
+}
+
 @media (max-width: 640px) {
   .app-shell {
     padding-bottom: 5.25rem;

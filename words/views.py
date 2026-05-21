@@ -99,6 +99,7 @@ def add_word(request):
                     'part_of_speech': form.cleaned_data.get('parsed_part_of_speech', ''),
                     'article': form.cleaned_data.get('parsed_article', ''),
                     'gender': form.cleaned_data.get('parsed_gender', ''),
+                    'plural_form': form.cleaned_data.get('parsed_plural_form', ''),
                     'category': form.cleaned_data.get('parsed_category', ''),
                     'example_sentences': form.cleaned_data.get('parsed_example_sentences', ''),
                     'verb_forms': form.cleaned_data.get('parsed_verb_forms', ''),
@@ -121,6 +122,7 @@ def add_word(request):
                     ('part_of_speech', 'parsed_part_of_speech'),
                     ('article', 'parsed_article'),
                     ('gender', 'parsed_gender'),
+                    ('plural_form', 'parsed_plural_form'),
                     ('category', 'parsed_category'),
                 ]:
                     if not getattr(word, field_name) and form.cleaned_data.get(parsed_name):
