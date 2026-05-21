@@ -3,19 +3,16 @@
 {% block title %}Grammar - Vocab Buddy{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+<div class="app-page">
+    <div class="app-page-header">
         <div>
-            <div class="mb-2 inline-flex rounded-lg px-3 py-1 text-primary" style="background-color: rgba(91, 127, 255, 0.1); font-size:12px; font-weight:500;">
-                German grammar
-            </div>
-            <h1 class="text-foreground text-2xl font-semibold">Grammar Repair</h1>
-            <p class="mt-1 text-muted-foreground" style="font-size:14px;">Practice the grammar your saved words need most.</p>
+            <h1 class="app-page-title">Grammar repair</h1>
+            <p class="app-page-subtitle">Practice the grammar your saved words need most.</p>
         </div>
-        <a href="{% url 'grammar:coach' %}" class="inline-flex rounded-lg bg-primary px-4 py-2 text-white hover:opacity-95" style="font-size:14px; font-weight:500;">Grammar Coach</a>
+        <a href="{% url 'grammar:coach' %}" class="app-button">Grammar Coach</a>
     </div>
 
-    <section class="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+    <section class="app-card app-card-pad">
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-foreground">Recommended now</h2>
@@ -47,7 +44,7 @@
         </div>
     </section>
 
-    <section class="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+    <section class="app-card app-card-pad">
         <div class="mb-4">
             <h2 class="text-lg font-semibold text-foreground">Practice from your deck</h2>
             <p class="mt-1 text-muted-foreground" style="font-size:14px;">Focused drills built from nouns, verbs, and adjectives you already saved.</p>

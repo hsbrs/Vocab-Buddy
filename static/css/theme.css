@@ -33,6 +33,8 @@
   --chart-4: #F59E0B;
   --chart-5: #8B5CF6;
   --radius: 0.75rem;
+  --app-shell-width: 1120px;
+  --app-narrow-width: 760px;
   --sidebar: #ffffff;
   --sidebar-foreground: #1F2937;
   --sidebar-primary: #5B7FFF;
@@ -218,6 +220,211 @@
 .flashcard-review {
   overflow-wrap: anywhere;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+}
+
+.bg-background { background-color: var(--background); }
+.text-primary-foreground { color: var(--primary-foreground); }
+
+.app-container {
+  width: min(100%, var(--app-shell-width));
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.app-main {
+  padding-block: 1.25rem 2.25rem;
+}
+
+.app-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.app-page-narrow {
+  max-width: var(--app-narrow-width);
+  margin-inline: auto;
+}
+
+.app-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.app-page-title {
+  color: var(--foreground);
+  font-size: clamp(1.5rem, 2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.app-page-subtitle {
+  margin-top: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.app-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(31, 41, 55, 0.04);
+}
+
+.app-card-pad {
+  padding: 1.25rem;
+}
+
+.app-button,
+.app-button-secondary,
+.app-button-danger {
+  display: inline-flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.65rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.app-button {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.app-button:hover {
+  background: color-mix(in srgb, var(--primary) 90%, black);
+}
+
+.app-button-secondary {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.app-button-secondary:hover {
+  background: var(--secondary);
+}
+
+.app-button-danger {
+  border: 1px solid color-mix(in srgb, var(--destructive) 25%, white);
+  background: color-mix(in srgb, var(--destructive) 8%, white);
+  color: #b91c1c;
+}
+
+.app-button-danger:hover {
+  background: color-mix(in srgb, var(--destructive) 14%, white);
+}
+
+.app-kicker {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.app-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.55rem;
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  padding: 0.35rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.app-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.app-field label {
+  color: var(--foreground);
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.form-control,
+.app-input {
+  width: 100%;
+  min-height: 2.85rem;
+  border: 1px solid var(--input);
+  border-radius: 0.65rem;
+  background: var(--input-background);
+  color: var(--foreground);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  outline: none;
+}
+
+.form-control:focus,
+.app-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(91, 127, 255, 0.16);
+}
+
+.app-meta-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.app-stat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 1rem;
+}
+
+.app-stat-value {
+  color: var(--foreground);
+  font-size: 1.55rem;
+  font-weight: 750;
+  line-height: 1.1;
+}
+
+.app-stat-label {
+  margin-top: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+}
+
+.brand-mark {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.13rem;
+}
+
+.brand-mark span {
+  border-radius: 0.18rem;
+}
+
+.brand-mark span:nth-child(1) { background: #4fa86f; }
+.brand-mark span:nth-child(2) { background: #8754a0; }
+.brand-mark span:nth-child(3) { background: #f48b45; }
+.brand-mark span:nth-child(4) { background: #f05263; }
 
 .article-word,
 .article-pill,
@@ -432,6 +639,23 @@ details.review-filter-panel > summary::-webkit-details-marker {
 }
 
 @media (max-width: 640px) {
+  .app-container {
+    padding-inline: 0.9rem;
+  }
+
+  .app-main {
+    padding-block: 1rem 1.5rem;
+  }
+
+  .app-page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-card-pad {
+    padding: 1rem;
+  }
+
   .app-shell {
     padding-bottom: 5.25rem;
   }

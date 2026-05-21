@@ -3,38 +3,57 @@
 {% block title %}Add Word - Vocab Buddy{% endblock %}
 
 {% block content %}
-    <div class="rounded-lg bg-white shadow-md p-8 max-w-2xl mx-auto">
-        <h2 class="text-3xl font-bold text-gray-900 mb-2">➕ Add a New Word</h2>
-        <p class="text-gray-600 mb-6">Enter a German word to add to your vocabulary. The AI will validate it and provide the translation and CEFR level.</p>
+<div class="app-page">
+    <div class="app-page-header">
+        <div>
+            <h1 class="app-page-title">Add a word</h1>
+            <p class="app-page-subtitle">Save a German word once. Vocab Buddy fills in translation, level, article, examples, and grammar data when available.</p>
+        </div>
+        <a href="{% url 'words:word_list' %}" class="app-button-secondary">Vocabulary</a>
+    </div>
 
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            
-            <div>
-                <label for="id_word" class="block text-sm font-medium text-gray-700">German Word</label>
-                <div class="mt-1">
+    <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="app-card app-card-pad">
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="app-field">
+                    <label for="id_word">German word</label>
                     {{ form.word }}
                     {% if form.word.errors %}
-                        <ul class="mt-2 text-sm text-red-600">
+                        <ul class="space-y-1 text-sm text-destructive">
                             {% for error in form.word.errors %}
-                                <li>❌ {{ error }}</li>
+                                <li>{{ error }}</li>
                             {% endfor %}
                         </ul>
                     {% endif %}
+                    <p class="text-muted-foreground" style="font-size:13px;">Try nouns with or without article, verbs in infinitive, or useful short phrases.</p>
                 </div>
-                <p class="mt-2 text-sm text-gray-500">
-                    💡 Examples: "Haus", "laufen", "schön", "schnell"
-                </p>
-            </div>
 
-            <div class="flex space-x-4">
-                <button type="submit" class="rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700">
-                    ✨ Add Word
-                </button>
-                <a href="{% url 'words:word_list' %}" class="rounded-md bg-gray-600 px-6 py-2 text-white font-medium hover:bg-gray-700">
-                    ⬅️ Back
-                </a>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <button type="submit" class="app-button">Add Word</button>
+                    <a href="{% url 'learning:review_start' %}" class="app-button-secondary">Review Deck</a>
+                </div>
+            </form>
+        </section>
+
+        <aside class="app-card app-card-pad">
+            <h2 class="font-semibold text-foreground">What happens next</h2>
+            <div class="mt-4 grid gap-3">
+                <div class="rounded-lg border border-border p-3">
+                    <div class="app-kicker">1. Identify</div>
+                    <p class="mt-1 text-foreground" style="font-size:14px;">Part of speech, CEFR level, article, gender, and plural are stored globally.</p>
+                </div>
+                <div class="rounded-lg border border-border p-3">
+                    <div class="app-kicker">2. Enrich</div>
+                    <p class="mt-1 text-foreground" style="font-size:14px;">Examples and verb forms are reused when the word already exists.</p>
+                </div>
+                <div class="rounded-lg border border-border p-3">
+                    <div class="app-kicker">3. Practice</div>
+                    <p class="mt-1 text-foreground" style="font-size:14px;">The word appears in flashcards, vocabulary filters, and grammar repair.</p>
+                </div>
             </div>
-        </form>
+        </aside>
     </div>
+</div>
 {% endblock %}

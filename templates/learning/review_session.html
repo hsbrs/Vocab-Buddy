@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flashcard-review -mx-2 w-auto sm:mx-auto sm:w-full max-w-3xl">
-  <h2 class="text-2xl font-bold mb-4">📚 Review Session</h2>
+<div class="flashcard-review app-page app-page-narrow">
+  <div class="app-page-header">
+    <div>
+      <h1 class="app-page-title">Review session</h1>
+      <p class="app-page-subtitle">Work through your saved deck, then repair weak grammar from the same words.</p>
+    </div>
+    <a href="{% url 'grammar:topic_list' %}" class="app-button-secondary">Grammar Repair</a>
+  </div>
 
-  <details class="review-filter-panel mb-6 rounded-lg border border-border bg-card p-3 shadow-sm" {% if selected_level or selected_pos or selected_article %}open{% endif %}>
+  <details class="review-filter-panel app-card app-card-pad" {% if selected_level or selected_pos or selected_article %}open{% endif %}>
     <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
       <div>
         <div class="font-semibold text-foreground" style="font-size:14px;">Review filters</div>
@@ -49,7 +55,7 @@
   </details>
 
   <!-- Progress -->
-  <div class="mb-6">
+  <div>
     <div class="flex items-center justify-between mb-2">
       <span id="card-index" class="text-sm font-semibold">Card 1</span>
       <span class="text-sm text-muted-foreground" id="card-percent">0% Complete</span>
@@ -60,7 +66,7 @@
   </div>
 
   <!-- Flashcard Display -->
-  <div id="card-container" class="relative w-full h-96 perspective-1000 mb-6">
+  <div id="card-container" class="relative w-full h-96 perspective-1000">
       <div id="card-flip-zone" class="absolute inset-0" style="cursor:pointer">
         <div id="card-level-badge" class="absolute top-4 left-4 z-20 rounded-md bg-primary px-3 py-1 text-sm font-semibold text-white shadow-sm">{% if cards and cards.0.level %}{{ cards.0.level }}{% else %}LEVEL{% endif %}</div>
         <div id="card-meta-badge" class="absolute top-4 right-4 z-20 rounded-md bg-secondary px-3 py-1 text-sm font-semibold text-foreground shadow-sm">{% if cards and cards.0.part_of_speech_label %}{{ cards.0.part_of_speech_label }}{% endif %}</div>
@@ -72,10 +78,10 @@
     </div>
   </div>
 
-  <div id="card-language-meta" class="mb-4 hidden rounded-lg border border-border bg-card p-3 text-sm text-foreground"></div>
+  <div id="card-language-meta" class="hidden rounded-lg border border-border bg-card p-3 text-sm text-foreground"></div>
 
   <!-- Controls -->
-  <div class="review-controls flex items-center justify-center gap-2 sm:gap-4 mb-6">
+  <div class="review-controls flex items-center justify-center gap-2 sm:gap-4">
     <button id="card-prev" class="flex items-center gap-2 px-5 sm:px-6 py-3 bg-secondary text-foreground rounded-lg hover:bg-secondary/80">Previous</button>
     <button id="card-next" class="flex items-center gap-2 px-5 sm:px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90">Next</button>
   </div>
@@ -155,13 +161,13 @@
   </div>
 
   <!-- Complete Button -->
-  <form method="post" action="{% url 'learning:review_next' %}" class="mt-6" id="review-complete-form">
+  <form method="post" action="{% url 'learning:review_next' %}" id="review-complete-form">
     {% csrf_token %}
     <input type="hidden" name="reviewed_pks" id="reviewed-pks-input" value="" />
     <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded">✅ Complete Review</button>
   </form>
 
-  <a href="{% url 'learning:index' %}" class="block text-center text-muted-foreground hover:text-foreground mt-4">Back</a>
+  <a href="{% url 'learning:index' %}" class="block text-center text-muted-foreground hover:text-foreground">Back</a>
 
   <script>
     window.reviewCards = {{ cards_json_str|safe }};

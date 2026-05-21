@@ -3,10 +3,13 @@
 {% block title %}My Vocabulary - Vocab Buddy{% endblock %}
 
 {% block content %}
-    <div>
-        <div class="mb-8">
-            <h2 class="text-foreground mb-2">Vocabulary</h2>
-            <p class="text-muted-foreground" style="font-size:14px;">Browse and review all your saved words and phrases</p>
+    <div class="app-page">
+        <div class="app-page-header">
+            <div>
+                <h1 class="app-page-title">Vocabulary</h1>
+                <p class="app-page-subtitle">Browse, filter, and maintain your personal memory deck.</p>
+            </div>
+            <a href="{% url 'words:add_word' %}" class="app-button">Add Word</a>
         </div>
 
         <!-- Search Bar -->
@@ -46,7 +49,7 @@
         <!-- Vocabulary Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for user_word in user_words %}
-                <div class="bg-card rounded-xl p-5 border border-border hover:shadow-md transition-shadow">
+                <div class="app-card app-card-pad hover:shadow-md transition-shadow">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex items-center gap-2">
                             <span class="text-primary capitalize" style="font-size:12px; font-weight:500;">{{ user_word.word.cefr_level }}</span>
@@ -77,10 +80,10 @@
                         {% endif %}
                     </div>
                     <div class="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
-                        <a href="{% url 'words:word_detail' user_word.pk %}" class="rounded-lg border border-border bg-card px-3 py-2 text-foreground hover:bg-secondary" style="font-size:13px; font-weight:500;">Details</a>
+                        <a href="{% url 'words:word_detail' user_word.pk %}" class="app-button-secondary" style="min-height:2.25rem; padding:0.55rem 0.75rem; font-size:13px;">Details</a>
                         <form method="post" action="{% url 'words:delete_word' user_word.pk %}" onsubmit="return confirm('Remove this word from your vocabulary?');">
                             {% csrf_token %}
-                            <button type="submit" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100" style="font-size:13px; font-weight:500;">Remove</button>
+                            <button type="submit" class="app-button-danger" style="min-height:2.25rem; padding:0.55rem 0.75rem; font-size:13px;">Remove</button>
                         </form>
                     </div>
                 </div>
