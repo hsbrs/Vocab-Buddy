@@ -136,7 +136,7 @@ def _split_example_line(line):
     return line.strip(), ''
 
 
-def _structure_noun_example(word, german, english=''):
+def _noun_phrase_candidates(word):
     noun = word.noun_text()
     articles = [
         word.nominative_article(),
@@ -144,10 +144,20 @@ def _structure_noun_example(word, german, english=''):
         word.nominative_article().capitalize() if word.nominative_article() else '',
         word.accusative_article().capitalize() if word.accusative_article() else '',
     ]
-    phrases = [f'{article} {noun}' for article in articles if article and noun]
+    return [f'{article} {noun}' for article in articles if article and noun]
+
+
+def _is_valid_german_noun_example(word, german):
+    if not german:
+        return False
+    lower_german = german.lower()
+    return any(phrase.lower() in lower_german for phrase in _noun_phrase_candidates(word))
+
+
+def _structure_noun_example(word, german, english=''):
     lower_german = german.lower()
 
-    for phrase in phrases:
+    for phrase in _noun_phrase_candidates(word):
         index = lower_german.find(phrase.lower())
         if index == -1:
             continue
@@ -211,7 +221,11 @@ def _fallback_noun_examples(word):
 
 def _noun_examples(word):
     lines = _parse_examples(word.example_sentences or '')
-    useful_lines = [line for line in lines if not _is_generic_noun_example(line)]
+    useful_lines = []
+    for line in lines:
+        german, _english = _split_example_line(line)
+        if not _is_generic_noun_example(line) and _is_valid_german_noun_example(word, german):
+            useful_lines.append(line)
 
     if len(useful_lines) < 2:
         try:
@@ -227,7 +241,7 @@ def _noun_examples(word):
             for example in examples[:2]:
                 german = (example.get('german') or '').strip()
                 english = (example.get('english') or '').strip()
-                if german:
+                if _is_valid_german_noun_example(word, german):
                     generated_lines.append(f'{german} - {english}' if english else german)
             if len(generated_lines) >= 2:
                 word.example_sentences = '\n'.join(generated_lines[:2])
@@ -237,10 +251,13 @@ def _noun_examples(word):
             useful_lines = useful_lines[:2]
 
     if useful_lines:
-        return [
+        structured_examples = [
             _structure_noun_example(word, *_split_example_line(line))
             for line in useful_lines[:2]
         ]
+        if len(structured_examples) < 2:
+            structured_examples.extend(_fallback_noun_examples(word)[len(structured_examples):])
+        return structured_examples[:2]
 
     return _fallback_noun_examples(word)
 
