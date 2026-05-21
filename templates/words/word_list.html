@@ -76,6 +76,13 @@
                             <div class="mt-2 text-muted-foreground" style="font-size:12px;">{{ user_word.word.category }}</div>
                         {% endif %}
                     </div>
+                    <div class="mt-4 flex items-center justify-between gap-2 border-t border-border pt-3">
+                        <a href="{% url 'words:word_detail' user_word.pk %}" class="rounded-lg border border-border bg-card px-3 py-2 text-foreground hover:bg-secondary" style="font-size:13px; font-weight:500;">Details</a>
+                        <form method="post" action="{% url 'words:delete_word' user_word.pk %}" onsubmit="return confirm('Remove this word from your vocabulary?');">
+                            {% csrf_token %}
+                            <button type="submit" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700 hover:bg-red-100" style="font-size:13px; font-weight:500;">Remove</button>
+                        </form>
+                    </div>
                 </div>
             {% empty %}
                 <div class="text-center py-12">

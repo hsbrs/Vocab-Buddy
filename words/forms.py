@@ -20,6 +20,29 @@ class AddWordForm(forms.Form):
     def clean_word(self):
         word_input = self.cleaned_data['word'].strip()
 
+        def normalize_lookup_text(value):
+            text = value.strip()
+            for prefix in ('der ', 'die ', 'das '):
+                if text.lower().startswith(prefix):
+                    text = text[len(prefix):].strip()
+                    break
+            return text[:1].upper() + text[1:] if text else text
+
+        def use_existing_word(existing_word):
+            self.cleaned_data.update({
+                'parsed_word': existing_word.word,
+                'parsed_translation': existing_word.translation,
+                'parsed_cefr_level': existing_word.cefr_level,
+                'parsed_part_of_speech': existing_word.part_of_speech,
+                'parsed_article': existing_word.article,
+                'parsed_gender': existing_word.gender,
+                'parsed_plural_form': existing_word.plural_form,
+                'parsed_category': existing_word.category,
+                'parsed_example_sentences': existing_word.example_sentences,
+                'parsed_verb_forms': existing_word.verb_forms,
+                'parsed_is_verb': existing_word.is_verb,
+            })
+
         def parse_word_response(ai_response):
             lines = [line.rstrip() for line in ai_response.splitlines()]
             word = ''
@@ -176,10 +199,14 @@ class AddWordForm(forms.Form):
         
         if not word_input:
             raise ValidationError('Please enter a German word.')
-        
-        # Check if word already exists
-        if Word.objects.filter(word__iexact=word_input).exists():
-            raise ValidationError('This word already exists in the database.')
+
+        existing_word = (
+            Word.objects.filter(word__iexact=word_input).first()
+            or Word.objects.filter(word__iexact=normalize_lookup_text(word_input)).first()
+        )
+        if existing_word:
+            use_existing_word(existing_word)
+            return word_input
         
         # Validate with Groq AI
         try:
