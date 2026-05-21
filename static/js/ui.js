@@ -63,6 +63,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (structured.length) {
       list.innerHTML = structured.map((item) => {
+        if (item.german) {
+          return `
+            <li class="noun-example-line rounded-md bg-white/70 px-3 py-2 border border-green-100">
+              <div>${escapeHtml(item.german || '')}</div>
+              <div class="example-translation">${escapeHtml(item.translation || '')}</div>
+            </li>
+          `;
+        }
         const article = item.article || '';
         const prefix = article ? escapeHtml(article.charAt(0)) : '';
         const rest = article.length > 1 ? escapeHtml(article.slice(1)) : '';

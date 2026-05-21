@@ -9,6 +9,7 @@ from words.models import UserWord, Word
 from .forms import ReviewForm, QuizAnswerForm
 from .models import QuizResult, ReviewSession
 from .scheduler import SpacedRepetitionScheduler
+from ai_service import GroqAIService
 import random
 
 
@@ -118,7 +119,54 @@ def _parse_examples(raw_examples):
     return lines[:2]
 
 
-def _noun_examples(word):
+def _is_generic_noun_example(line):
+    lower = line.lower()
+    return (
+        ' ist neu' in lower
+        or lower.startswith('ich sehe ')
+        or ' is new' in lower
+        or 'i see the ' in lower
+    )
+
+
+def _split_example_line(line):
+    if ' - ' in line:
+        german, english = line.split(' - ', 1)
+        return german.strip(), english.strip()
+    return line.strip(), ''
+
+
+def _structure_noun_example(word, german, english=''):
+    noun = word.noun_text()
+    articles = [
+        word.nominative_article(),
+        word.accusative_article(),
+        word.nominative_article().capitalize() if word.nominative_article() else '',
+        word.accusative_article().capitalize() if word.accusative_article() else '',
+    ]
+    phrases = [f'{article} {noun}' for article in articles if article and noun]
+    lower_german = german.lower()
+
+    for phrase in phrases:
+        index = lower_german.find(phrase.lower())
+        if index == -1:
+            continue
+        article, colored = german[index:index + len(phrase)].split(' ', 1)
+        return {
+            'before': german[:index],
+            'article': article,
+            'colored': colored,
+            'after': german[index + len(phrase):],
+            'translation': english,
+        }
+
+    return {
+        'german': german,
+        'translation': english,
+    }
+
+
+def _fallback_noun_examples(word):
     noun = word.noun_text()
     nominative_article = word.nominative_article()
     accusative_article = word.accusative_article()
@@ -159,6 +207,42 @@ def _noun_examples(word):
             'translation': f'I see the {word.translation}.',
         },
     ]
+
+
+def _noun_examples(word):
+    lines = _parse_examples(word.example_sentences or '')
+    useful_lines = [line for line in lines if not _is_generic_noun_example(line)]
+
+    if len(useful_lines) < 2:
+        try:
+            examples = GroqAIService().get_noun_examples(
+                word=word.noun_text(),
+                article=word.nominative_article(),
+                plural_form=word.display_plural(),
+                translation=word.translation,
+                category=word.category,
+                cefr_level=word.cefr_level,
+            ).get('examples', [])
+            generated_lines = []
+            for example in examples[:2]:
+                german = (example.get('german') or '').strip()
+                english = (example.get('english') or '').strip()
+                if german:
+                    generated_lines.append(f'{german} - {english}' if english else german)
+            if len(generated_lines) >= 2:
+                word.example_sentences = '\n'.join(generated_lines[:2])
+                word.save(update_fields=['example_sentences'])
+                useful_lines = generated_lines[:2]
+        except Exception:
+            useful_lines = useful_lines[:2]
+
+    if useful_lines:
+        return [
+            _structure_noun_example(word, *_split_example_line(line))
+            for line in useful_lines[:2]
+        ]
+
+    return _fallback_noun_examples(word)
 
 
 def _noun_grammar_hint(word):

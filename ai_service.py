@@ -201,6 +201,52 @@ Here is the word to analyze:
         )
         return chat_completion.choices[0].message.content
 
+    def get_noun_examples(self, word, article, plural_form='', translation='', category='', cefr_level='A1'):
+        """Generate natural noun example sentences as JSON."""
+        prompt = """You are a German teacher creating flashcard examples for a learner.
+Return ONLY valid JSON with this exact shape:
+{
+  "examples": [
+    {"german": "<German sentence>", "english": "<English translation>"},
+    {"german": "<German sentence>", "english": "<English translation>"}
+  ]
+}
+
+Rules:
+- Write exactly 2 natural, useful German sentences.
+- Sentence 1 must start with the noun phrase using its article, for example "Das Thema ...".
+- Sentence 2 must use the noun phrase naturally in the middle of the sentence.
+- Use everyday A1/A2-friendly language unless the CEFR level is higher.
+- Do not use generic filler like "ist neu" unless it is truly natural for this noun.
+- Do not use "Ich sehe ..." as the default pattern.
+- Keep sentences short and practical.
+- Use the correct German article/case for the noun.
+- Include plural only if it helps the meaning naturally.
+- Do not wrap the JSON in markdown.
+
+Noun data:
+"""
+        payload = {
+            "word": word,
+            "article": article,
+            "plural_form": plural_form,
+            "translation": translation,
+            "category": category,
+            "cefr_level": cefr_level,
+        }
+        chat_completion = self.client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": prompt + json.dumps(payload, ensure_ascii=False),
+                },
+            ],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+        )
+        content = chat_completion.choices[0].message.content
+        return json.loads(content)
+
     def check_grammar(self, sentence):
         """Analyze a German sentence and return structured grammar feedback."""
         prompt = """You are a German grammar coach for language learners.
