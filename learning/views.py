@@ -119,6 +119,44 @@ def _parse_examples(raw_examples):
     return lines[:2]
 
 
+def _parse_generated_examples(raw_text, word_text):
+    examples = []
+    for raw_line in (raw_text or '').splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        if ':' in line:
+            prefix, rest = line.split(':', 1)
+            if prefix.strip().lower() == word_text.lower():
+                line = rest.strip()
+        if ' - ' not in line:
+            continue
+        german, english = line.split(' - ', 1)
+        german = german.strip()
+        english = english.strip()
+        if german and english and word_text.lower() in german.lower():
+            examples.append(f'{german} - {english}')
+    return examples[:2]
+
+
+def _examples_for_word(word):
+    examples = _parse_examples(word.example_sentences or '')
+    if len(examples) >= 2:
+        return examples
+    try:
+        generated = _parse_generated_examples(
+            GroqAIService().write_example([word.word]),
+            word.word,
+        )
+        if len(generated) >= 2:
+            word.example_sentences = '\n'.join(generated[:2])
+            word.save(update_fields=['example_sentences'])
+            return generated[:2]
+    except Exception:
+        pass
+    return examples
+
+
 def _is_generic_noun_example(line):
     lower = line.lower()
     return (
@@ -392,6 +430,13 @@ def _parse_verb_forms(raw_text):
     }
 
 
+def _has_usable_verb_data(data):
+    if not data:
+        return False
+    meta = data.get('meta') or {}
+    return bool(meta.get('verb') and (data.get('present_rows') or data.get('past_rows')))
+
+
 def _grammar_hint_for_word(word, is_verb, verb_forms_data):
     text = (word.word or '').strip()
     lower_text = text.lower()
@@ -443,6 +488,34 @@ def _grammar_hint_for_word(word, is_verb, verb_forms_data):
             ],
             'pattern': 'First idea + conjugated verb + subject + details',
             'example': 'Heute lerne ich Deutsch. - Today I am learning German.',
+        }
+
+    if word.part_of_speech == 'adjective':
+        return {
+            'title': 'Grammar Focus: Adjective Endings',
+            'topic_slug': 'adjective-endings',
+            'topic_label': 'Practice Grammar',
+            'bullets': [
+                f'{text} is an adjective form.',
+                'German adjective endings change based on article, gender, case, and number.',
+                'After der/die/das, adjectives often take weak endings like -e or -en.',
+            ],
+            'pattern': 'article + adjective ending + noun',
+            'example': 'Ich nehme den nächsten Bus. - I am taking the next bus.',
+        }
+
+    if word.part_of_speech == 'adverb':
+        return {
+            'title': 'Grammar Focus: Adverb Use',
+            'topic_slug': 'verb-position-main-clauses',
+            'topic_label': 'Practice Word Order',
+            'bullets': [
+                f'{text} works like an adverb.',
+                'Adverbs often describe time, manner, place, or frequency.',
+                'If a time phrase starts the sentence, the conjugated verb still stays second.',
+            ],
+            'pattern': 'time/adverb + verb + subject + details',
+            'example': 'Morgen lerne ich Deutsch. - Tomorrow I am learning German.',
         }
 
     if lower_text.startswith(('der ', 'die ', 'das ')):
@@ -543,11 +616,12 @@ def review_start(request):
         level_weight = level_map.get(uw.word.cefr_level, 0)
         weight = 1 + incorrect * 3 + level_weight
 
-        examples = _parse_examples(uw.word.example_sentences or '')
+        examples = _examples_for_word(uw.word)
         example_structures = _noun_examples(uw.word) if uw.word.part_of_speech == 'noun' else []
         verb_forms_raw = uw.word.verb_forms or ''
-        is_verb = uw.word.is_verb or bool(verb_forms_raw)
-        verb_forms_data = _parse_verb_forms(verb_forms_raw) if is_verb and verb_forms_raw else None
+        parsed_verb_forms = _parse_verb_forms(verb_forms_raw) if uw.word.part_of_speech == 'verb' and verb_forms_raw else None
+        verb_forms_data = parsed_verb_forms if _has_usable_verb_data(parsed_verb_forms) else None
+        is_verb = bool(verb_forms_data)
         grammar_hint = _grammar_hint_for_word(uw.word, is_verb, verb_forms_data)
 
         cards.append({
