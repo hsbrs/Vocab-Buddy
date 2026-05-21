@@ -223,21 +223,32 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 a {
   text-decoration: none;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .bg-background { background-color: var(--background); }
 .text-primary-foreground { color: var(--primary-foreground); }
 
 .app-container {
-  width: min(100%, var(--app-shell-width));
+  width: 100%;
+  max-width: var(--app-shell-width);
   margin-inline: auto;
   padding-inline: 1rem;
 }
@@ -249,6 +260,7 @@ a {
 .app-page {
   display: grid;
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .app-page-narrow {
@@ -279,6 +291,7 @@ a {
 }
 
 .app-card {
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
@@ -401,6 +414,7 @@ a {
   font-size: 1.55rem;
   font-weight: 750;
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .app-stat-label {
@@ -567,6 +581,10 @@ a {
   left: 0;
   z-index: 60;
   display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.25rem;
   border-top: 1px solid var(--border);
@@ -589,6 +607,8 @@ a {
   line-height: 1.1;
   padding: 0.35rem 0.25rem;
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobile-bottom-link.is-active {
@@ -652,6 +672,10 @@ details.review-filter-panel > summary::-webkit-details-marker {
     flex-direction: column;
   }
 
+  .app-page-title {
+    font-size: 1.55rem;
+  }
+
   .app-card-pad {
     padding: 1rem;
   }
@@ -670,8 +694,21 @@ details.review-filter-panel > summary::-webkit-details-marker {
   }
 
   #card-container {
-    height: 20rem;
-    margin-bottom: 1rem;
+    height: min(26rem, calc(100vh - 22rem));
+    min-height: 20rem;
+    margin-bottom: 0;
+  }
+
+  .flashcard-review {
+    gap: 0.85rem;
+  }
+
+  .flashcard-review .app-page-header {
+    display: none;
+  }
+
+  .review-filter-panel.app-card-pad {
+    padding: 0.85rem 1rem;
   }
 
   #card-level-badge {
@@ -681,7 +718,7 @@ details.review-filter-panel > summary::-webkit-details-marker {
 
   .flashcard-face {
     padding: 1rem;
-    font-size: 48px;
+    font-size: 42px;
   }
 
   .coach-submit {

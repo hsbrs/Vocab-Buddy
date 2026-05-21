@@ -111,7 +111,11 @@ document.addEventListener('DOMContentLoaded', function () {
     pattern.innerHTML = hint.pattern ? `<span class="font-semibold">Pattern:</span> ${escapeHtml(hint.pattern)}` : '';
     example.innerHTML = hint.example ? `<span class="font-semibold">Example:</span> ${escapeHtml(hint.example)}` : '';
     link.textContent = hint.topic_label || 'Practice Grammar';
-    link.href = hint.topic_slug ? `/grammar/${encodeURIComponent(hint.topic_slug)}/` : '/grammar/';
+    if (hint.topic_slug === 'adjective-endings') {
+      link.href = '/grammar/personal/adjective-endings/';
+    } else {
+      link.href = hint.topic_slug ? `/grammar/${encodeURIComponent(hint.topic_slug)}/` : '/grammar/';
+    }
   }
 
   function articleClass(card) {

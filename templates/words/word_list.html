@@ -9,42 +9,51 @@
                 <h1 class="app-page-title">Vocabulary</h1>
                 <p class="app-page-subtitle">Browse, filter, and maintain your personal memory deck.</p>
             </div>
-            <a href="{% url 'words:add_word' %}" class="app-button">Add Word</a>
+            <a href="{% url 'words:add_word' %}" class="app-button hidden sm:inline-flex">Add Word</a>
         </div>
 
-        <!-- Search Bar -->
-        <div class="mb-6">
-            <form method="get">
-              <div class="relative">
-                  <input type="text" name="search" placeholder="Search vocabulary..." value="{{ search_query }}" class="w-full pl-10 pr-4 py-3 bg-card border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground" style="font-size:14px;" />
-              </div>
-            </form>
-        </div>
-
-        <!-- Filter Tabs (CEFR levels) -->
-        <div class="mb-6">
-            <div class="flex gap-2 overflow-x-auto pb-2">
-                <a href="?" class="px-4 py-2 rounded-lg transition-colors {% if not current_level and not current_pos and not current_article %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">All ({{ total_words }})</a>
-                {% for level, label, count in cefr_with_counts %}
-                    <a href="?level={{ level }}" class="px-4 py-2 rounded-lg transition-colors {% if current_level == level %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:14px; white-space:nowrap;">{{ level }} ({{ count }})</a>
-                {% endfor %}
+        <form method="get" class="app-card app-card-pad">
+            <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_160px_190px_190px]">
+                <label class="app-field">
+                    <span>Search</span>
+                    <input type="text" name="search" placeholder="Search vocabulary..." value="{{ search_query }}" class="app-input">
+                </label>
+                <label class="app-field">
+                    <span>Level</span>
+                    <select name="level" class="app-input">
+                        <option value="">All ({{ total_words }})</option>
+                        {% for level, label, count in cefr_with_counts %}
+                            <option value="{{ level }}" {% if current_level == level %}selected{% endif %}>{{ level }} ({{ count }})</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="app-field">
+                    <span>Type</span>
+                    <select name="pos" class="app-input">
+                        <option value="">All types</option>
+                        {% for value, label, count in pos_with_counts %}
+                            <option value="{{ value }}" {% if current_pos == value %}selected{% endif %}>{{ label }} ({{ count }})</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="app-field">
+                    <span>Noun article</span>
+                    <select name="article" class="app-input">
+                        <option value="">Any article</option>
+                        {% for value, label, count in article_with_counts %}
+                            <option value="{{ value }}" {% if current_article == value %}selected{% endif %}>{{ label }} ({{ count }})</option>
+                        {% endfor %}
+                    </select>
+                </label>
             </div>
-        </div>
-
-        <div class="mb-6 space-y-3">
-            <div class="flex gap-2 overflow-x-auto pb-1">
-                <a href="?" class="px-3 py-2 rounded-lg transition-colors {% if not current_pos %}bg-secondary text-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:13px; white-space:nowrap;">All types</a>
-                {% for value, label, count in pos_with_counts %}
-                    <a href="?pos={{ value }}" class="px-3 py-2 rounded-lg transition-colors {% if current_pos == value %}bg-primary text-primary-foreground{% else %}hover:bg-secondary text-foreground{% endif %}" style="font-size:13px; white-space:nowrap;">{{ label }} ({{ count }})</a>
-                {% endfor %}
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <button type="submit" class="app-button">Apply filters</button>
+                <a href="{% url 'words:word_list' %}" class="app-button-secondary">Reset</a>
+                {% if current_level or current_pos or current_article or search_query %}
+                    <span class="text-muted-foreground" style="font-size:13px;">Filtered view</span>
+                {% endif %}
             </div>
-            <div class="flex gap-2 overflow-x-auto pb-1">
-                <span class="px-3 py-2 text-muted-foreground" style="font-size:13px; white-space:nowrap;">Noun articles</span>
-                {% for value, label, count in article_with_counts %}
-                    <a href="?pos=noun&article={{ value }}" class="article-pill article-{{ value }} px-3 py-2 rounded-lg transition-colors {% if current_article == value %}is-selected{% endif %}" style="font-size:13px; white-space:nowrap;">{{ label }} ({{ count }})</a>
-                {% endfor %}
-            </div>
-        </div>
+        </form>
 
         <!-- Vocabulary Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

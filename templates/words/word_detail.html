@@ -3,10 +3,11 @@
 {% block title %}{{ word.word }} - Vocab Buddy{% endblock %}
 
 {% block content %}
-    <div class="rounded-lg bg-white shadow-md p-8 max-w-2xl mx-auto">
-            <a href="{% url 'words:word_list' %}" class="text-blue-600 hover:text-blue-700 mb-4">⬅️ Back to Vocabulary</a>
-
-            <h2 class="text-4xl font-bold text-gray-900 mt-4 mb-2">
+<div class="app-page">
+    <div class="app-page-header">
+        <div>
+            <a href="{% url 'words:word_list' %}" class="text-primary hover:opacity-80" style="font-size:14px;">Vocabulary</a>
+            <h1 class="app-page-title mt-2">
                 {% if word.part_of_speech == 'noun' and word.article %}
                     <span class="article-word">
                         <span class="article-prefix">{{ word.article_prefix }}</span><span class="article-colored article-{{ word.article_color_key }}">{{ word.article_rest }}</span>
@@ -15,86 +16,92 @@
                 {% else %}
                     {{ word.word }}
                 {% endif %}
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Translation</h3>
-                    <p class="text-2xl font-bold text-gray-900 mt-2">{{ word.translation }}</p>
-                </div>
-
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">CEFR Level</h3>
-                    <p class="text-2xl font-bold text-blue-600 mt-2">{{ word.cefr_level }}</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Type</h3>
-                    <p class="text-xl font-bold text-gray-900 mt-2">{{ word.get_part_of_speech_display|default:"Not set" }}</p>
-                </div>
-
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Article / Gender</h3>
-                    <p class="text-xl font-bold text-gray-900 mt-2">
-                        {% if word.part_of_speech == 'noun' %}
-                            {{ word.article|default:"-" }}{% if word.gender %} · {{ word.gender }}{% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Category</h3>
-                    <p class="text-xl font-bold text-gray-900 mt-2">{{ word.category|default:"Not set" }}</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Reviews</h3>
-                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ user_word.review_count }}</p>
-                </div>
-
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Correct Answers</h3>
-                    <p class="text-3xl font-bold text-green-600 mt-2">{{ user_word.correct_count }}</p>
-                </div>
-
-                <div class="rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Accuracy</h3>
-                    <p class="text-3xl font-bold text-blue-600 mt-2">{{ accuracy }}%</p>
-                </div>
-            </div>
-
-            {% if user_word.last_reviewed %}
-                <div class="mt-6 rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Last Reviewed</h3>
-                    <p class="text-lg text-gray-900 mt-2">{{ user_word.last_reviewed|date:"M d, Y H:i" }}</p>
-                </div>
-            {% endif %}
-
-            {% if grammar_topics %}
-                <div class="mt-6 rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase">Related Grammar</h3>
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        {% for topic in grammar_topics %}
-                            <a href="{% url 'grammar:topic_detail' topic.slug %}" class="rounded-md bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100">{{ topic.title }}</a>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-
-            <div class="flex space-x-4 mt-8">
-                <a href="{% url 'words:delete_word' user_word.pk %}" class="rounded-md bg-red-600 px-6 py-2 text-white font-medium hover:bg-red-700">
-                    🗑️ Remove Word
-                </a>
-                <a href="{% url 'words:word_list' %}" class="rounded-md bg-gray-600 px-6 py-2 text-white font-medium hover:bg-gray-700">
-                    ⬅️ Back
-                </a>
-            </div>
+            </h1>
+            <p class="app-page-subtitle">{{ word.translation }}</p>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row">
+            <a href="{% url 'learning:review_start' %}" class="app-button">Review</a>
+            <a href="{% url 'words:word_list' %}" class="app-button-secondary">Back</a>
         </div>
     </div>
+
+    <section class="app-meta-grid">
+        <div class="app-stat">
+            <div class="app-stat-value">{{ word.cefr_level }}</div>
+            <div class="app-stat-label">CEFR level</div>
+        </div>
+        <div class="app-stat">
+            <div class="app-stat-value" style="font-size:1.2rem;">{{ word.get_part_of_speech_display|default:"Not set" }}</div>
+            <div class="app-stat-label">Type</div>
+        </div>
+        <div class="app-stat">
+            <div class="app-stat-value" style="font-size:1.2rem;">
+                {% if word.part_of_speech == 'noun' %}
+                    {{ word.article|default:"-" }}{% if word.gender %} · {{ word.gender }}{% endif %}
+                {% else %}
+                    -
+                {% endif %}
+            </div>
+            <div class="app-stat-label">Article / gender</div>
+        </div>
+        <div class="app-stat">
+            <div class="app-stat-value" style="font-size:1.2rem;">{{ word.category|default:"Not set" }}</div>
+            <div class="app-stat-label">Category</div>
+        </div>
+    </section>
+
+    {% if word.part_of_speech == 'noun' and word.plural_form %}
+        <section class="app-card app-card-pad">
+            <h2 class="font-semibold text-foreground">Plural</h2>
+            <p class="mt-2 text-foreground" style="font-size:22px; font-weight:700;">die {{ word.display_plural }}</p>
+        </section>
+    {% endif %}
+
+    <section class="app-card app-card-pad">
+        <div class="mb-4 flex items-center justify-between gap-3">
+            <div>
+                <h2 class="font-semibold text-foreground">Review history</h2>
+                <p class="text-muted-foreground" style="font-size:13px;">Your personal progress for this word.</p>
+            </div>
+            {% if user_word.last_reviewed %}
+                <span class="app-pill">{{ user_word.last_reviewed|date:"M d" }}</span>
+            {% endif %}
+        </div>
+        <div class="app-meta-grid">
+            <div class="app-stat">
+                <div class="app-stat-value">{{ user_word.review_count }}</div>
+                <div class="app-stat-label">Reviews</div>
+            </div>
+            <div class="app-stat">
+                <div class="app-stat-value text-success">{{ user_word.correct_count }}</div>
+                <div class="app-stat-label">Correct answers</div>
+            </div>
+            <div class="app-stat">
+                <div class="app-stat-value text-primary">{{ accuracy }}%</div>
+                <div class="app-stat-label">Accuracy</div>
+            </div>
+        </div>
+    </section>
+
+    {% if grammar_topics %}
+        <section class="app-card app-card-pad">
+            <h2 class="font-semibold text-foreground">Related grammar</h2>
+            <div class="mt-3 flex flex-wrap gap-2">
+                {% for topic in grammar_topics %}
+                    <a href="{% url 'grammar:topic_detail' topic.slug %}" class="app-button-secondary" style="min-height:2.25rem; padding:0.55rem 0.75rem; font-size:13px;">{{ topic.title }}</a>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <section class="app-card app-card-pad">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="font-semibold text-foreground">Manage word</h2>
+                <p class="text-muted-foreground" style="font-size:13px;">Remove it only from your personal deck.</p>
+            </div>
+            <a href="{% url 'words:delete_word' user_word.pk %}" class="app-button-danger">Remove Word</a>
+        </div>
+    </section>
+</div>
 {% endblock %}
