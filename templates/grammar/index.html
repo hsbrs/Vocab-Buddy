@@ -9,8 +9,8 @@
             <div class="mb-2 inline-flex rounded-lg px-3 py-1 text-primary" style="background-color: rgba(91, 127, 255, 0.1); font-size:12px; font-weight:500;">
                 German grammar
             </div>
-            <h1 class="text-foreground text-2xl font-semibold">Grammar Topics</h1>
-            <p class="mt-1 text-muted-foreground" style="font-size:14px;">Short lessons with quick practice for the grammar you will meet most often.</p>
+            <h1 class="text-foreground text-2xl font-semibold">Grammar Repair</h1>
+            <p class="mt-1 text-muted-foreground" style="font-size:14px;">Practice the grammar your saved words need most.</p>
         </div>
         <a href="{% url 'grammar:coach' %}" class="inline-flex rounded-lg bg-primary px-4 py-2 text-white hover:opacity-95" style="font-size:14px; font-weight:500;">Grammar Coach</a>
     </div>
@@ -18,21 +18,48 @@
     <section class="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div>
-                <h2 class="text-lg font-semibold text-foreground">Grammar from your words</h2>
-                <p class="mt-1 text-muted-foreground" style="font-size:14px;">Practice grammar using vocabulary already saved in your deck.</p>
+                <h2 class="text-lg font-semibold text-foreground">Recommended now</h2>
+                <p class="mt-1 text-muted-foreground" style="font-size:14px;">Based on your saved vocabulary and review history.</p>
             </div>
-            <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">Personal practice</span>
+            <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">Personal repair</span>
         </div>
         <div class="grid gap-3 md:grid-cols-3">
+            {% for item in recommendations %}
+                <div class="rounded-lg border border-primary bg-card p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <span class="rounded-md bg-primary px-2 py-1 text-white" style="font-size:12px;">{{ item.level }}</span>
+                            <h3 class="mt-3 font-semibold text-foreground">{{ item.title }}</h3>
+                        </div>
+                        <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">{{ item.focus }}</span>
+                    </div>
+                    <p class="mt-2 text-muted-foreground" style="font-size:13px;">{{ item.reason }}</p>
+                    <p class="mt-1 text-muted-foreground" style="font-size:12px;">{{ item.count }} matching words</p>
+                    <a href="{{ item.href }}" class="mt-4 inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:600;">Practice</a>
+                </div>
+            {% empty %}
+                <div class="rounded-lg border border-border p-4 md:col-span-3">
+                    <h3 class="font-semibold text-foreground">Add a few words first</h3>
+                    <p class="mt-2 text-muted-foreground" style="font-size:14px;">Once your deck has nouns, verbs, or adjectives, Vocab Buddy can recommend grammar repair drills.</p>
+                    <a href="{% url 'words:add_word' %}" class="mt-4 inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:600;">Add Words</a>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-5">
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold text-foreground">Practice from your deck</h2>
+            <p class="mt-1 text-muted-foreground" style="font-size:14px;">Focused drills built from nouns, verbs, and adjectives you already saved.</p>
+        </div>
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             {% for item in personal_practice %}
                 <div class="rounded-lg border border-border p-4">
                     <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">{{ item.level }}</span>
-                            <h3 class="mt-3 font-semibold text-foreground">{{ item.title }}</h3>
-                        </div>
+                        <span class="rounded-md bg-secondary px-2 py-1 text-muted-foreground" style="font-size:12px;">{{ item.level }}</span>
                         <span class="rounded-md {% if item.count %}bg-primary text-white{% else %}bg-secondary text-muted-foreground{% endif %} px-2 py-1" style="font-size:12px;">{{ item.count }}</span>
                     </div>
+                    <h3 class="mt-3 font-semibold text-foreground">{{ item.title }}</h3>
                     <p class="mt-2 text-muted-foreground" style="font-size:13px;">{{ item.summary }}</p>
                     {% if item.count %}
                         <a href="{{ item.href }}" class="mt-4 inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:600;">Practice</a>
@@ -45,6 +72,10 @@
     </section>
 
     <div class="space-y-5">
+        <div>
+            <h2 class="text-lg font-semibold text-foreground">Grammar foundations</h2>
+            <p class="mt-1 text-muted-foreground" style="font-size:14px;">Short lessons stay here when you want the rule before the repair drill.</p>
+        </div>
         {% for group in topics_by_level %}
             {% if group.topics %}
                 <section>

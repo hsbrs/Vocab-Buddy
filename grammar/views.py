@@ -19,16 +19,31 @@ PERSONAL_PRACTICE = {
         'title': 'Accusative Articles',
         'summary': 'Practice der/die/das changes with nouns from your deck.',
         'level': 'A1',
+        'focus': 'Cases',
+    },
+    'noun-plural-agreement': {
+        'title': 'Plural Agreement',
+        'summary': 'Use plural nouns with die and plural verb forms.',
+        'level': 'A1',
+        'focus': 'Nouns',
     },
     'verb-position': {
         'title': 'Verb Position',
         'summary': 'Build main-clause word order from verbs you saved.',
         'level': 'A1',
+        'focus': 'Word order',
+    },
+    'verb-present-tense': {
+        'title': 'Present Tense Forms',
+        'summary': 'Practice ich/du/er/wir forms from saved verbs.',
+        'level': 'A1',
+        'focus': 'Verbs',
     },
     'adjective-endings': {
         'title': 'Adjective Endings',
         'summary': 'Notice endings on adjective forms from your vocabulary.',
         'level': 'B1',
+        'focus': 'Adjectives',
     },
 }
 
@@ -86,12 +101,33 @@ def _present_form(raw_text, pronoun):
     return ''
 
 
+def _weak_word_ids(user):
+    weak_ids = set()
+    for user_word in UserWord.objects.filter(user=user, review_count__gt=0).select_related('word'):
+        accuracy = user_word.get_accuracy()
+        if accuracy < 70 or (user_word.review_count - user_word.correct_count) > 0:
+            weak_ids.add(user_word.word_id)
+    return weak_ids
+
+
+def _ordered_user_words(user, queryset):
+    weak_ids = _weak_word_ids(user)
+    user_words = list(queryset.select_related('word')[:40])
+    user_words.sort(key=lambda user_word: (
+        0 if user_word.word_id in weak_ids else 1,
+        -(user_word.review_count - user_word.correct_count),
+        -user_word.review_count,
+        user_word.word.word.lower(),
+    ))
+    return user_words[:20]
+
+
 def _noun_practice_items(user):
-    uwords = list(UserWord.objects.filter(
+    uwords = _ordered_user_words(user, UserWord.objects.filter(
         user=user,
         word__part_of_speech='noun',
         word__article__in=['der', 'die', 'das'],
-    ).select_related('word')[:20])
+    ))
     items = []
     for user_word in uwords:
         word = user_word.word
@@ -118,12 +154,49 @@ def _noun_practice_items(user):
     return items
 
 
-def _verb_practice_items(user):
-    uwords = list(UserWord.objects.filter(
+def _plural_practice_items(user):
+    uwords = _ordered_user_words(user, UserWord.objects.filter(
+        user=user,
+        word__part_of_speech='noun',
+        word__plural_form__gt='',
+    ))
+    items = []
+    for user_word in uwords:
+        word = user_word.word
+        plural = word.display_plural()
+        if not plural:
+            continue
+        singular = word.display_word()
+        prompt = f'{singular} -> Die ___ sind wichtig.'
+        options = _shuffle_options([
+            plural,
+            word.noun_text(),
+            f'{plural}e',
+            f'{word.noun_text()}n',
+        ])
+        correct_option = _option_letter(options, plural)
+        items.append({
+            'word_id': word.id,
+            'prompt': prompt,
+            'options': options,
+            'correct_option': correct_option,
+            'correct_label': plural,
+            'explanation': f'The plural of {singular} is die {plural}. Plural nouns use die and usually pair with plural verbs like sind.',
+            'word_label': singular,
+        })
+    return items
+
+
+def _verb_user_words(user):
+    return _ordered_user_words(user, UserWord.objects.filter(
         user=user,
         word__part_of_speech='verb',
         word__verb_forms__gt='',
-    ).select_related('word')[:20])
+    ))
+
+
+def _verb_position_items(user):
+    uwords = _verb_user_words(user)
     items = []
     for user_word in uwords:
         word = user_word.word
@@ -153,11 +226,42 @@ def _verb_practice_items(user):
     return items
 
 
+def _verb_present_tense_items(user):
+    uwords = _verb_user_words(user)
+    items = []
+    pronoun_labels = [
+        ('ich', 'I'),
+        ('du', 'you'),
+        ('er', 'he'),
+        ('wir', 'we'),
+    ]
+    for user_word in uwords:
+        word = user_word.word
+        forms = [(pronoun, label, _present_form(word.verb_forms, pronoun)) for pronoun, label in pronoun_labels]
+        forms = [(pronoun, label, form) for pronoun, label, form in forms if form]
+        if len(forms) < 2:
+            continue
+        for pronoun, label, correct in forms[:2]:
+            distractors = [form for _p, _label, form in forms if form != correct]
+            options = _shuffle_options([correct, word.word, *distractors[:2]])
+            correct_option = _option_letter(options, correct)
+            items.append({
+                'word_id': word.id,
+                'prompt': f'{pronoun} ___ ({word.word})',
+                'options': options,
+                'correct_option': correct_option,
+                'correct_label': correct,
+                'explanation': f'For {pronoun} ({label}), use {correct}. Learn the conjugated form, not only the infinitive.',
+                'word_label': word.word,
+            })
+    return items[:20]
+
+
 def _adjective_practice_items(user):
-    uwords = list(UserWord.objects.filter(
+    uwords = _ordered_user_words(user, UserWord.objects.filter(
         user=user,
         word__part_of_speech='adjective',
-    ).select_related('word')[:20])
+    ))
     items = []
     for user_word in uwords:
         word = user_word.word
@@ -187,8 +291,12 @@ def _adjective_practice_items(user):
 def _personal_practice_items(user, kind):
     if kind == 'noun-accusative':
         return _noun_practice_items(user)
+    if kind == 'noun-plural-agreement':
+        return _plural_practice_items(user)
     if kind == 'verb-position':
-        return _verb_practice_items(user)
+        return _verb_position_items(user)
+    if kind == 'verb-present-tense':
+        return _verb_present_tense_items(user)
     if kind == 'adjective-endings':
         return _adjective_practice_items(user)
     return []
@@ -197,7 +305,9 @@ def _personal_practice_items(user, kind):
 def _personal_practice_summary(user):
     counts = {
         'noun-accusative': UserWord.objects.filter(user=user, word__part_of_speech='noun', word__article__in=['der', 'die', 'das']).count(),
+        'noun-plural-agreement': UserWord.objects.filter(user=user, word__part_of_speech='noun', word__plural_form__gt='').count(),
         'verb-position': UserWord.objects.filter(user=user, word__part_of_speech='verb', word__verb_forms__gt='').count(),
+        'verb-present-tense': UserWord.objects.filter(user=user, word__part_of_speech='verb', word__verb_forms__gt='').count(),
         'adjective-endings': UserWord.objects.filter(user=user, word__part_of_speech='adjective').count(),
     }
     return [
@@ -206,11 +316,41 @@ def _personal_practice_summary(user):
             'title': config['title'],
             'summary': config['summary'],
             'level': config['level'],
+            'focus': config['focus'],
             'count': counts[kind],
             'href': reverse('grammar:personal_practice', args=[kind]),
         }
         for kind, config in PERSONAL_PRACTICE.items()
     ]
+
+
+def _grammar_recommendations(user, personal_practice):
+    weak_ids = _weak_word_ids(user)
+    weak_words = UserWord.objects.filter(user=user, word_id__in=weak_ids).select_related('word')
+    weak_nouns = weak_words.filter(word__part_of_speech='noun').count()
+    weak_verbs = weak_words.filter(word__part_of_speech='verb').count()
+    weak_adjectives = weak_words.filter(word__part_of_speech='adjective').count()
+    by_kind = {item['kind']: item for item in personal_practice}
+    recommendations = []
+
+    def add(kind, reason, priority):
+        item = by_kind.get(kind)
+        if item and item['count']:
+            recommendations.append({**item, 'reason': reason, 'priority': priority})
+
+    if weak_nouns:
+        add('noun-accusative', f'{weak_nouns} saved noun{"s" if weak_nouns != 1 else ""} need review.', 1)
+    if weak_verbs:
+        add('verb-present-tense', f'{weak_verbs} saved verb{"s" if weak_verbs != 1 else ""} need review.', 2)
+    if weak_adjectives:
+        add('adjective-endings', f'{weak_adjectives} saved adjective{"s" if weak_adjectives != 1 else ""} need review.', 3)
+    if not recommendations:
+        add('noun-accusative', 'Best next step for German articles and cases.', 4)
+        add('verb-present-tense', 'Useful when your deck has verbs with forms.', 5)
+        add('noun-plural-agreement', 'Good for learning plural forms together with nouns.', 6)
+
+    recommendations.sort(key=lambda item: item['priority'])
+    return recommendations[:3]
 
 
 @login_required
@@ -237,9 +377,11 @@ def topic_list(request):
         }
         for level in levels
     ]
+    personal_practice = _personal_practice_summary(request.user)
     return render(request, 'grammar/index.html', {
         'topics_by_level': topics_by_level,
-        'personal_practice': _personal_practice_summary(request.user),
+        'personal_practice': personal_practice,
+        'recommendations': _grammar_recommendations(request.user, personal_practice),
     })
 
 
