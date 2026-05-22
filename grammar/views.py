@@ -4,8 +4,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from ai_service import GroqAIService
+from Vocab_Buddy.ai_limits import AILimitReached, check_ai_limit, record_ai_usage
 from words.models import UserWord
 from .models import (
+    AIUsageEvent,
     GrammarCoachEntry,
     GrammarExercise,
     GrammarExerciseAttempt,
@@ -407,7 +409,9 @@ def coach(request):
             return redirect('grammar:coach')
 
         try:
+            check_ai_limit(request.user, AIUsageEvent.FEATURE_GRAMMAR_COACH)
             result = GroqAIService().check_grammar(sentence)
+            record_ai_usage(request.user, AIUsageEvent.FEATURE_GRAMMAR_COACH)
             entry = GrammarCoachEntry.objects.create(
                 user=request.user,
                 sentence=sentence,
@@ -420,6 +424,9 @@ def coach(request):
                 examples=result.get('examples') or [],
             )
             recent_entries = GrammarCoachEntry.objects.filter(user=request.user)[:5]
+        except AILimitReached as exc:
+            messages.warning(request, exc.message)
+            return redirect('grammar:coach')
         except Exception as exc:
             messages.error(request, f'Grammar coach could not analyze that sentence yet: {exc}')
 

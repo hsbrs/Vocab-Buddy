@@ -83,7 +83,7 @@ def word_list(request):
 def add_word(request):
     """Add a new word to user's vocabulary"""
     if request.method == 'POST':
-        form = AddWordForm(request.POST)
+        form = AddWordForm(request.POST, user=request.user)
         if form.is_valid():
             # Get parsed word data from form
             word_text = form.cleaned_data['parsed_word']
@@ -150,7 +150,7 @@ def add_word(request):
             
             return redirect('words:word_list')
     else:
-        form = AddWordForm()
+        form = AddWordForm(user=request.user)
     
     context = {'form': form}
     return render(request, 'words/add_word.html', context)

@@ -104,7 +104,28 @@ class GrammarCoachEntry(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name_plural = 'grammar coach entries'
 
     def __str__(self):
         return f'{self.user} - {self.sentence[:40]}'
+
+
+class AIUsageEvent(models.Model):
+    FEATURE_GRAMMAR_COACH = 'grammar_coach'
+    FEATURE_WORD_ENRICHMENT = 'word_enrichment'
+    FEATURE_CHOICES = [
+        (FEATURE_GRAMMAR_COACH, 'Grammar Coach'),
+        (FEATURE_WORD_ENRICHMENT, 'Word Enrichment'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    feature = models.CharField(max_length=40, choices=FEATURE_CHOICES)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['user', 'feature', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.user} - {self.feature} at {self.created_at:%Y-%m-%d %H:%M}'

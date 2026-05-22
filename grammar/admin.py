@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    AIUsageEvent,
     GrammarCoachEntry,
     GrammarExercise,
     GrammarExerciseAttempt,
@@ -50,3 +51,10 @@ class GrammarCoachEntryAdmin(admin.ModelAdmin):
     list_display = ('user', 'topic', 'cefr_level', 'is_correct', 'created_at')
     list_filter = ('is_correct', 'cefr_level', 'topic', 'created_at')
     search_fields = ('user__username', 'sentence', 'corrected_sentence', 'explanation')
+
+
+@admin.register(AIUsageEvent)
+class AIUsageEventAdmin(admin.ModelAdmin):
+    list_display = ('user', 'feature', 'created_at')
+    list_filter = ('feature', 'created_at')
+    search_fields = ('user__username',)

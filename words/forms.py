@@ -2,10 +2,16 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import Word, UserWord
 from ai_service import GroqAIService
+from grammar.models import AIUsageEvent
+from Vocab_Buddy.ai_limits import AILimitReached, check_ai_limit, record_ai_usage
 
 
 class AddWordForm(forms.Form):
     """Form to add a new German word"""
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
     
     word = forms.CharField(
         label='German Word',
@@ -207,11 +213,17 @@ class AddWordForm(forms.Form):
         if existing_word:
             use_existing_word(existing_word)
             return word_input
-        
+
+        if self.user is None:
+            raise ValidationError('Please sign in before using AI word enrichment.')
+
         # Validate with Groq AI
+        ai_was_used = False
         try:
+            check_ai_limit(self.user, AIUsageEvent.FEATURE_WORD_ENRICHMENT)
             ai_service = GroqAIService()
             ai_response = ai_service.get_word_info(word_input)
+            ai_was_used = True
             
             if ai_response.strip().lower() == 'not german':
                 raise ValidationError(
@@ -234,9 +246,14 @@ class AddWordForm(forms.Form):
                 raise ValidationError(
                     'Could not parse word information. Please try another word.'
                 )
+        except AILimitReached as e:
+            raise ValidationError(e.message)
         except Exception as e:
             raise ValidationError(
                 f'Error validating word: {str(e)} Please try again.'
             )
+        finally:
+            if ai_was_used:
+                record_ai_usage(self.user, AIUsageEvent.FEATURE_WORD_ENRICHMENT)
         
         return word_input
