@@ -83,6 +83,38 @@ def word_list(request):
 def add_word(request):
     """Add a new word to user's vocabulary"""
     if request.method == 'POST':
+        if request.POST.get('action') == 'add_starter_words':
+            raw_limit = request.POST.get('starter_limit', '10')
+            limit = 25 if raw_limit == '25' else 10
+            category = request.POST.get('starter_category', '').strip()
+            shuffle = request.POST.get('starter_shuffle') == 'on'
+
+            words = Word.objects.filter(cefr_level='A1', part_of_speech='noun')
+            if category:
+                words = words.filter(category=category)
+            existing_word_ids = set(UserWord.objects.filter(user=request.user).values_list('word_id', flat=True))
+            candidates = list(words.exclude(id__in=existing_word_ids))
+            if shuffle:
+                import random
+                random.shuffle(candidates)
+            else:
+                candidates.sort(key=lambda word: (word.category, word.word.lower()))
+
+            selected_words = candidates[:limit]
+            for word in selected_words:
+                UserWord.objects.get_or_create(user=request.user, word=word)
+
+            already_count = words.filter(id__in=existing_word_ids).count()
+            if selected_words:
+                messages.success(
+                    request,
+                    f'Added {len(selected_words)} starter word{"s" if len(selected_words) != 1 else ""}. '
+                    f'{already_count} from this set were already in your deck.'
+                )
+            else:
+                messages.info(request, 'You already have all available starter words for that selection.')
+            return redirect('words:word_list')
+
         form = AddWordForm(request.POST, user=request.user)
         if form.is_valid():
             # Get parsed word data from form
@@ -151,8 +183,22 @@ def add_word(request):
             return redirect('words:word_list')
     else:
         form = AddWordForm(user=request.user)
-    
-    context = {'form': form}
+
+    starter_words = Word.objects.filter(cefr_level='A1', part_of_speech='noun')
+    starter_categories = [
+        category for category in starter_words.order_by('category')
+        .values_list('category', flat=True)
+        .distinct()
+        if category
+    ]
+    user_word_ids = set(UserWord.objects.filter(user=request.user).values_list('word_id', flat=True))
+    starter_available_count = starter_words.exclude(id__in=user_word_ids).count()
+
+    context = {
+        'form': form,
+        'starter_categories': starter_categories,
+        'starter_available_count': starter_available_count,
+    }
     return render(request, 'words/add_word.html', context)
 
 

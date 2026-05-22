@@ -376,6 +376,47 @@ a {
   font-weight: 650;
 }
 
+.starter-option {
+  display: flex;
+  min-height: 2.6rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.starter-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.starter-option:has(input:checked) {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, white);
+  color: var(--primary);
+}
+
+.starter-check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.starter-check input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+}
+
 .form-control,
 .app-input {
   width: 100%;

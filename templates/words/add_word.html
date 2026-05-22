@@ -13,29 +13,80 @@
     </div>
 
     <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section class="app-card app-card-pad">
-            <form method="post" class="space-y-5">
-                {% csrf_token %}
+        <div class="grid gap-4">
+            <section class="app-card app-card-pad">
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
 
-                <div class="app-field">
-                    <label for="id_word">German word</label>
-                    {{ form.word }}
-                    {% if form.word.errors %}
-                        <ul class="space-y-1 text-sm text-destructive">
-                            {% for error in form.word.errors %}
-                                <li>{{ error }}</li>
+                    <div class="app-field">
+                        <label for="id_word">German word</label>
+                        {{ form.word }}
+                        {% if form.word.errors %}
+                            <ul class="space-y-1 text-sm text-destructive">
+                                {% for error in form.word.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                        <p class="text-muted-foreground" style="font-size:13px;">Try nouns with or without article, verbs in infinitive, or useful short phrases.</p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <button type="submit" class="app-button">Add Word</button>
+                        <a href="{% url 'learning:review_start' %}" class="app-button-secondary">Review Deck</a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="app-card app-card-pad">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h2 class="font-semibold text-foreground">Starter words</h2>
+                        <p class="mt-1 text-muted-foreground" style="font-size:14px;">Add existing A1 words to your deck without using AI.</p>
+                    </div>
+                    <span class="app-pill">{{ starter_available_count }} available</span>
+                </div>
+
+                <form method="post" class="mt-5 grid gap-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_starter_words">
+
+                    <fieldset class="grid gap-2">
+                        <legend class="text-foreground" style="font-size:13px; font-weight:650;">Session size</legend>
+                        <div class="grid grid-cols-2 gap-2 sm:max-w-xs">
+                            <label class="starter-option">
+                                <input type="radio" name="starter_limit" value="10" checked>
+                                <span>10 words</span>
+                            </label>
+                            <label class="starter-option">
+                                <input type="radio" name="starter_limit" value="25">
+                                <span>25 words</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div class="app-field">
+                        <label for="starter_category">Category</label>
+                        <select id="starter_category" name="starter_category" class="app-input">
+                            <option value="">All A1 nouns</option>
+                            {% for category in starter_categories %}
+                                <option value="{{ category }}">{{ category }}</option>
                             {% endfor %}
-                        </ul>
-                    {% endif %}
-                    <p class="text-muted-foreground" style="font-size:13px;">Try nouns with or without article, verbs in infinitive, or useful short phrases.</p>
-                </div>
+                        </select>
+                    </div>
 
-                <div class="flex flex-col gap-2 sm:flex-row">
-                    <button type="submit" class="app-button">Add Word</button>
-                    <a href="{% url 'learning:review_start' %}" class="app-button-secondary">Review Deck</a>
-                </div>
-            </form>
-        </section>
+                    <label class="starter-check">
+                        <input type="checkbox" name="starter_shuffle" checked>
+                        <span>Shuffle selection</span>
+                    </label>
+
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <button type="submit" class="app-button">Add Starter Words</button>
+                        <a href="{% url 'learning:review_start' %}" class="app-button-secondary">Start Review</a>
+                    </div>
+                </form>
+            </section>
+        </div>
 
         <aside class="app-card app-card-pad">
             <h2 class="font-semibold text-foreground">What happens next</h2>
