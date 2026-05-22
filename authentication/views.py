@@ -40,7 +40,7 @@ def register_view(request):
             user = form.save()
             username = user.username
             login(request, user)
-            messages.success(request, f"Account created successfully, {username}! Welcome to Vocab Buddy.")
+            messages.success(request, f"Account created successfully, {username}! Welcome to Voca Help.")
             return redirect('home')
         else:
             # Display form errors

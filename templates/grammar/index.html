@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Grammar - Vocab Buddy{% endblock %}
+{% block title %}Grammar - Voca Help{% endblock %}
 
 {% block content %}
 <div class="app-page">
@@ -37,7 +37,7 @@
             {% empty %}
                 <div class="rounded-lg border border-border p-4 md:col-span-3">
                     <h3 class="font-semibold text-foreground">Add a few words first</h3>
-                    <p class="mt-2 text-muted-foreground" style="font-size:14px;">Once your deck has nouns, verbs, or adjectives, Vocab Buddy can recommend grammar repair drills.</p>
+                    <p class="mt-2 text-muted-foreground" style="font-size:14px;">Once your deck has nouns, verbs, or adjectives, Voca Help can recommend grammar repair drills.</p>
                     <a href="{% url 'words:add_word' %}" class="mt-4 inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:600;">Add Words</a>
                 </div>
             {% endfor %}

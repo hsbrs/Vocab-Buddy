@@ -7,8 +7,8 @@ from django.urls import reverse
 
 def manifest(request):
     payload = {
-        'name': 'Vocab Buddy',
-        'short_name': 'Vocab Buddy',
+        'name': 'Voca Help',
+        'short_name': 'Voca Help',
         'id': reverse('home'),
         'start_url': reverse('home'),
         'scope': '/',
@@ -52,7 +52,7 @@ def service_worker(request):
     ]
 
     script = f"""
-const CACHE_NAME = 'vocab-buddy-pwa-v3';
+const CACHE_NAME = 'voca-help-pwa-v3';
 const ASSETS = {json.dumps(assets_to_cache)};
 
 self.addEventListener('install', (event) => {{

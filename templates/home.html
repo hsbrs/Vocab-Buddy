@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Home - Vocab Buddy{% endblock %}
+{% block title %}Home - Voca Help{% endblock %}
 
 {% block content %}
 <div class="app-page">
@@ -95,7 +95,7 @@
         {% else %}
             <section class="mx-auto max-w-2xl rounded-lg border border-border bg-card p-6 text-center shadow-sm">
                 <h1 class="text-2xl font-semibold text-foreground">Start your first learning session</h1>
-                <p class="mt-3 text-muted-foreground" style="font-size:14px;">Add your first German word and Vocab Buddy will build flashcards, grammar hints, and examples around it.</p>
+                <p class="mt-3 text-muted-foreground" style="font-size:14px;">Add your first German word and Voca Help will build flashcards, grammar hints, and examples around it.</p>
                 <div class="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
                     <a href="{% url 'words:add_word' %}" class="rounded-lg bg-primary px-4 py-3 text-white hover:opacity-95" style="font-size:14px; font-weight:600;">Add First Word</a>
                     <a href="{% url 'grammar:topic_list' %}" class="rounded-lg border border-border bg-card px-4 py-3 text-foreground hover:bg-secondary" style="font-size:14px; font-weight:600;">Browse Grammar</a>

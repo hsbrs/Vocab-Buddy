@@ -1,4 +1,4 @@
-# 🇩🇪 Vocab Buddy - German Vocabulary Learning Web App
+# 🇩🇪 Voca Help - German Vocabulary Learning Web App
 
 [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://python.org)
 [![Django](https://img.shields.io/badge/Django-6.0-green.svg)](https://djangoproject.com)
@@ -88,8 +88,8 @@ A modern Django web application designed to help users learn German vocabulary a
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/hsbrs/Vocab-Buddy.git
-cd Vocab-Buddy
+git clone <repository-url>
+cd <repository-directory>
 ```
 
 ### 2. Create and Activate Virtual Environment
@@ -167,8 +167,8 @@ SECURE_HSTS_SECONDS=0
 
 Build and run example:
 ```bash
-docker build -t vocab-buddy:latest .
-docker run --env-file .env -v vocab-buddy-data:/app/data -p 8000:8000 vocab-buddy:latest
+docker build -t voca-help:latest .
+docker run --env-file .env -v voca-help-data:/app/data -p 8000:8000 voca-help:latest
 ```
 
 ### Production Deployment
@@ -240,7 +240,7 @@ Register → Add German Words → Review with Flashcards → Practice Grammar �
 ## 📁 Project Structure
 
 ```
-Vocab-Buddy/
+Voca-Help/
 ├── Vocab_Buddy/              # Django project settings
 │   ├── settings.py           # Django configuration
 │   ├── urls.py               # URL routing
@@ -322,7 +322,7 @@ Vocab-Buddy/
 
 ## 🌐 PWA Support
 
-Vocab Buddy is a Progressive Web App (PWA) and can be installed on mobile and desktop devices.
+Voca Help is a Progressive Web App (PWA) and can be installed on mobile and desktop devices.
 
 ### Features
 - **Installable**: Add to home screen on Android, iOS, and desktop browsers
@@ -399,7 +399,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For issues, questions, or suggestions:
 
-1. Check [GitHub Issues](https://github.com/armin2080/Vocab-Buddy/issues)
+1. Check the project issue tracker
 2. Create a new issue with detailed description and screenshots
 3. Include relevant error logs or console output
 
@@ -423,4 +423,4 @@ For issues, questions, or suggestions:
 
 **Happy Learning! 🎓📚**
 
-*Vocab Buddy - Making German vocabulary learning interactive, personalized, and fun!*
+*Voca Help - Making German vocabulary learning interactive, personalized, and fun!*
