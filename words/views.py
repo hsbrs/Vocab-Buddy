@@ -7,6 +7,66 @@ from .models import Word, UserWord
 from .forms import AddWordForm
 
 
+def _parse_verb_forms(raw_text):
+    meta = {
+        'verb': '',
+        'meaning': '',
+        'type': '',
+        'participle': '',
+        'auxiliary': '',
+    }
+    present_rows = []
+    past_rows = []
+    section = None
+
+    for line in [line.strip() for line in (raw_text or '').splitlines() if line.strip()]:
+        if line.startswith('VERB:'):
+            meta['verb'] = line.split(':', 1)[1].strip()
+            continue
+        if line.startswith('MEANING:'):
+            meta['meaning'] = line.split(':', 1)[1].strip()
+            continue
+        if line.startswith('TYPE:'):
+            meta['type'] = line.split(':', 1)[1].strip()
+            continue
+        if line.startswith('PRESENT TENSE:'):
+            section = 'present'
+            continue
+        if line.startswith('PAST TENSE'):
+            section = 'past'
+            continue
+        if line.startswith('PERFECT TENSE:'):
+            section = 'perfect'
+            continue
+        if section == 'perfect':
+            if line.startswith('Past Participle:'):
+                meta['participle'] = line.split(':', 1)[1].strip()
+            elif line.startswith('Auxiliary:'):
+                meta['auxiliary'] = line.split(':', 1)[1].strip()
+            continue
+        if section in {'present', 'past'}:
+            parts = line.split(None, 1)
+            if len(parts) == 2:
+                row = {'pronoun': parts[0].strip(), 'form': parts[1].strip()}
+                if section == 'present':
+                    present_rows.append(row)
+                else:
+                    past_rows.append(row)
+
+    return {
+        'meta': meta,
+        'present_rows': present_rows,
+        'past_rows': past_rows,
+    }
+
+
+def _has_usable_verb_data(data):
+    if not data:
+        return False
+    meta = data.get('meta') or {}
+    return bool(meta.get('verb') and (data.get('present_rows') or data.get('past_rows')))
+
+
 @login_required(login_url='authentication:login')
 def word_list(request):
     """List all words in user's vocabulary"""
@@ -207,8 +267,12 @@ def word_detail(request, pk):
     """View details of a specific word"""
     user_word = get_object_or_404(UserWord, pk=pk, user=request.user)
     grammar_topics = []
+    verb_forms_data = None
 
     if user_word.word.is_verb:
+        parsed_verb_forms = _parse_verb_forms(user_word.word.verb_forms)
+        if _has_usable_verb_data(parsed_verb_forms):
+            verb_forms_data = parsed_verb_forms
         grammar_topics.extend(GrammarTopic.objects.filter(slug__in=[
             'verb-position-main-clauses',
             'separable-verbs',
@@ -226,6 +290,7 @@ def word_detail(request, pk):
         'word': user_word.word,
         'accuracy': user_word.get_accuracy(),
         'grammar_topics': grammar_topics,
+        'verb_forms_data': verb_forms_data,
     }
     return render(request, 'words/word_detail.html', context)
 

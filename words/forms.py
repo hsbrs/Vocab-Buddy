@@ -234,7 +234,7 @@ class AddWordForm(forms.Form):
                 parsed = parse_word_response(ai_response)
                 self.cleaned_data.update(parsed)
 
-                if not self.cleaned_data['parsed_is_verb']:
+                if not self.cleaned_data.get('parsed_verb_forms'):
                     verb_info_response = ai_service.get_verb_info(word_input)
                     parsed_verb_forms = parse_verb_response(verb_info_response)
                     if parsed_verb_forms:
