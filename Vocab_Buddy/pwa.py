@@ -44,8 +44,7 @@ def service_worker(request):
     assets_to_cache = [
         static('css/fonts.css'),
         static('css/theme.css'),
-        f"{static('js/ui.js')}?v=4",
-        f"{static('js/verb-panel.js')}?v=1",
+        f"{static('js/ui.js')}?v=8",
         static('icons/icon-192.png'),
         static('icons/icon-512.png'),
         static('icons/apple-touch-icon.png'),

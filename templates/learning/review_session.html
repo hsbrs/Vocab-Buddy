@@ -80,19 +80,29 @@
 
   <div id="card-language-meta" class="hidden rounded-lg border border-border bg-card p-3 text-sm text-foreground"></div>
 
+  <section id="review-answer-strip" class="review-answer-strip app-card app-card-pad hidden">
+    <div>
+      <div class="app-kicker">Answer</div>
+      <div id="answer-translation" class="review-answer-main"></div>
+    </div>
+    <div id="answer-meta" class="review-answer-meta"></div>
+    <div id="answer-verb-chips" class="review-answer-chips hidden"></div>
+  </section>
+
   <!-- Controls -->
   <div class="review-controls flex items-center justify-center gap-2 sm:gap-4">
     <button id="card-prev" class="flex items-center gap-2 px-5 sm:px-6 py-3 bg-secondary text-foreground rounded-lg hover:bg-secondary/80">Previous</button>
     <button id="card-next" class="flex items-center gap-2 px-5 sm:px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90">Next</button>
   </div>
 
-  <!-- Examples & Paragraph -->
-  <div class="space-y-3 sm:space-y-4">
-    <details class="review-panel bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4" open>
-      <summary class="flex items-center justify-between gap-3">
-        <h3 class="font-semibold text-green-900">Example Sentences</h3>
-        <span class="text-green-900" style="font-size:13px;">Show</span>
-      </summary>
+  <section class="review-tabs app-card app-card-pad">
+    <div class="review-tab-list" role="tablist" aria-label="Review reference">
+      <button type="button" id="tab-examples" class="review-tab is-active" data-review-tab="examples" role="tab" aria-controls="panel-examples" aria-selected="true">Examples</button>
+      <button type="button" id="tab-grammar" class="review-tab" data-review-tab="grammar" role="tab" aria-controls="panel-grammar" aria-selected="false">Grammar</button>
+      <button type="button" id="tab-verbs" class="review-tab hidden" data-review-tab="verbs" role="tab" aria-controls="panel-verbs" aria-selected="false">Verb Forms</button>
+    </div>
+
+    <div id="panel-examples" class="review-tab-panel" role="tabpanel" aria-labelledby="tab-examples">
       <ul id="card-examples" class="space-y-2 text-sm text-foreground">
         {% if cards and cards.0.examples %}
           {% for example in cards.0.examples %}
@@ -100,71 +110,78 @@
           {% endfor %}
         {% endif %}
       </ul>
-    </details>
+    </div>
 
-    <details id="grammar-hint-section" class="review-panel bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4" open>
-      <summary class="flex items-center justify-between gap-3">
-        <h3 id="grammar-hint-title" class="font-semibold text-blue-900">Grammar Hint</h3>
-        <span class="text-blue-900" style="font-size:13px;">Show</span>
-      </summary>
-      <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div class="w-full">
-          <ul id="grammar-hint-bullets" class="space-y-2 text-sm text-foreground"></ul>
+    <div id="panel-grammar" class="review-tab-panel hidden" role="tabpanel" aria-labelledby="tab-grammar">
+      <div id="grammar-hint-section">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 id="grammar-hint-title" class="font-semibold text-blue-900">Grammar Hint</h3>
+            <div id="grammar-hint-pattern" class="mt-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-foreground border border-blue-100"></div>
+            <div id="grammar-hint-example" class="mt-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-foreground border border-blue-100"></div>
+          </div>
+          <a id="grammar-hint-link" href="{% url 'grammar:topic_list' %}" class="inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:500;">Practice</a>
         </div>
-        <a id="grammar-hint-link" href="{% url 'grammar:topic_list' %}" class="inline-flex rounded-lg bg-primary px-3 py-2 text-white hover:opacity-95" style="font-size:13px; font-weight:500;">Practice</a>
+        <ul id="grammar-hint-bullets" class="mt-3 grid gap-2 text-sm text-foreground"></ul>
       </div>
-      <div id="grammar-hint-pattern" class="mt-3 rounded-md bg-white/70 px-3 py-2 text-sm text-foreground border border-blue-100"></div>
-      <div id="grammar-hint-example" class="mt-2 rounded-md bg-white/70 px-3 py-2 text-sm text-foreground border border-blue-100"></div>
-    </details>
+    </div>
 
-    <details id="verb-section" class="review-panel bg-purple-50 border border-purple-200 rounded-lg p-3 sm:p-4" style="{% if not cards or not cards.0.is_verb %}display:none;{% endif %}" open>
-      <summary class="flex items-center justify-between gap-3">
-        <h3 class="font-semibold text-purple-900">Verb Forms</h3>
-        <span class="text-purple-900" style="font-size:13px;">Show</span>
-      </summary>
-      <div class="mt-3 overflow-x-auto space-y-4">
-        <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
-          <tbody id="verb-summary-body"></tbody>
-        </table>
+    <div id="panel-verbs" class="review-tab-panel hidden" role="tabpanel" aria-labelledby="tab-verbs">
+      <div id="verb-section" class="{% if not cards or not cards.0.is_verb %}hidden{% endif %}">
+        <div class="grid gap-4">
+          <div>
+            <h3 class="font-semibold text-purple-900">Present Tense</h3>
+            <div id="verb-compact-present" class="verb-compact-grid mt-2"></div>
+          </div>
+          <div id="verb-compact-meta" class="verb-compact-meta"></div>
+          <details class="review-full-table">
+            <summary>Full table</summary>
+            <div class="mt-3 overflow-x-auto space-y-4">
+              <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
+                <tbody id="verb-summary-body"></tbody>
+              </table>
 
-        <div>
-          <div class="font-semibold text-purple-900 mb-2">Present Tense</div>
-          <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
-            <thead class="bg-purple-100 text-purple-900">
-              <tr><th class="text-left px-3 py-2">Pronoun</th><th class="text-left px-3 py-2">Form</th></tr>
-            </thead>
-            <tbody id="verb-present-body" class="bg-white"></tbody>
-          </table>
-        </div>
+              <div>
+                <div class="font-semibold text-purple-900 mb-2">Present Tense</div>
+                <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
+                  <thead class="bg-purple-100 text-purple-900">
+                    <tr><th class="text-left px-3 py-2">Pronoun</th><th class="text-left px-3 py-2">Form</th></tr>
+                  </thead>
+                  <tbody id="verb-present-body" class="bg-white"></tbody>
+                </table>
+              </div>
 
-        <div>
-          <div class="font-semibold text-purple-900 mb-2">Perfect Tense</div>
-          <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
-            <thead class="bg-purple-100 text-purple-900">
-              <tr><th class="text-left px-3 py-2">Participle</th><th class="text-left px-3 py-2">Auxiliary</th></tr>
-            </thead>
-            <tbody id="verb-perfect-body" class="bg-white"></tbody>
-          </table>
-        </div>
+              <div>
+                <div class="font-semibold text-purple-900 mb-2">Perfect Tense</div>
+                <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
+                  <thead class="bg-purple-100 text-purple-900">
+                    <tr><th class="text-left px-3 py-2">Participle</th><th class="text-left px-3 py-2">Auxiliary</th></tr>
+                  </thead>
+                  <tbody id="verb-perfect-body" class="bg-white"></tbody>
+                </table>
+              </div>
 
-        <div>
-          <div class="font-semibold text-purple-900 mb-2">Past Tense</div>
-          <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
-            <thead class="bg-purple-100 text-purple-900">
-              <tr><th class="text-left px-3 py-2">Pronoun</th><th class="text-left px-3 py-2">Form</th></tr>
-            </thead>
-            <tbody id="verb-past-body" class="bg-white"></tbody>
-          </table>
+              <div>
+                <div class="font-semibold text-purple-900 mb-2">Past Tense</div>
+                <table class="w-full text-sm border border-purple-200 rounded-lg overflow-hidden">
+                  <thead class="bg-purple-100 text-purple-900">
+                    <tr><th class="text-left px-3 py-2">Pronoun</th><th class="text-left px-3 py-2">Form</th></tr>
+                  </thead>
+                  <tbody id="verb-past-body" class="bg-white"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
-    </details>
-  </div>
+    </div>
+  </section>
 
   <!-- Complete Button -->
-  <form method="post" action="{% url 'learning:review_next' %}" id="review-complete-form">
+  <form method="post" action="{% url 'learning:review_next' %}" id="review-complete-form" class="review-finish-form">
     {% csrf_token %}
     <input type="hidden" name="reviewed_pks" id="reviewed-pks-input" value="" />
-    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded">✅ Complete Review</button>
+    <button type="submit" class="app-button review-finish-button">Complete Review</button>
   </form>
 
   <a href="{% url 'learning:index' %}" class="block text-center text-muted-foreground hover:text-foreground">Back</a>

@@ -678,6 +678,135 @@ a {
   backdrop-filter: blur(10px);
 }
 
+.review-answer-strip {
+  display: grid;
+  gap: 0.75rem;
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
+  background: color-mix(in srgb, var(--primary) 5%, white);
+}
+
+.review-answer-main {
+  margin-top: 0.15rem;
+  color: var(--foreground);
+  font-size: 1.35rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.review-answer-meta,
+.review-answer-chips,
+.verb-compact-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.review-answer-meta span,
+.review-answer-chips span,
+.verb-compact-meta div {
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0.45rem 0.65rem;
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.review-answer-chips span {
+  color: var(--foreground);
+}
+
+.review-tabs {
+  display: grid;
+  gap: 1rem;
+}
+
+.review-tab-list {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.review-tab {
+  min-height: 2.35rem;
+  flex: 0 0 auto;
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.85rem;
+  color: var(--muted-foreground);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.review-tab.is-active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.review-tab-panel {
+  min-height: 8rem;
+}
+
+.verb-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.verb-compact-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid #e9d5ff;
+  border-radius: 0.7rem;
+  background: #faf5ff;
+  padding: 0.7rem 0.85rem;
+}
+
+.verb-compact-cell span,
+.verb-compact-meta span {
+  color: #6b21a8;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.verb-compact-cell strong,
+.verb-compact-meta strong {
+  color: var(--foreground);
+}
+
+.verb-compact-meta div {
+  display: grid;
+  gap: 0.15rem;
+  border-color: #e9d5ff;
+  background: #faf5ff;
+}
+
+.review-full-table summary {
+  cursor: pointer;
+  color: #6b21a8;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.review-finish-form {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 25;
+}
+
+.review-finish-button {
+  width: 100%;
+  background: #16a34a;
+}
+
+.review-finish-button:hover {
+  background: #15803d;
+}
+
 .coach-submit {
   width: 100%;
 }
@@ -755,6 +884,18 @@ details.review-filter-panel > summary::-webkit-details-marker {
 
   .review-filter-panel.app-card-pad {
     padding: 0.85rem 1rem;
+  }
+
+  .review-controls {
+    bottom: 5.2rem;
+  }
+
+  .review-finish-form {
+    bottom: 0.65rem;
+  }
+
+  .verb-compact-grid {
+    grid-template-columns: 1fr;
   }
 
   #card-level-badge {

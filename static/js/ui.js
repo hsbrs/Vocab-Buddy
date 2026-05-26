@@ -89,6 +89,57 @@ document.addEventListener('DOMContentLoaded', function () {
     list.innerHTML = items.map((line) => `<li class="rounded-md bg-white/70 px-3 py-2 border border-green-100">${escapeHtml(line)}</li>`).join('');
   }
 
+  function setActiveReviewTab(name) {
+    const tabs = Array.from(document.querySelectorAll('[data-review-tab]'));
+    const panels = {
+      examples: document.getElementById('panel-examples'),
+      grammar: document.getElementById('panel-grammar'),
+      verbs: document.getElementById('panel-verbs'),
+    };
+    tabs.forEach((tab) => {
+      const active = tab.dataset.reviewTab === name;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    Object.entries(panels).forEach(([key, panel]) => {
+      if (panel) panel.classList.toggle('hidden', key !== name);
+    });
+  }
+
+  function defaultReviewTab(card) {
+    if (card && card.is_verb && card.verb_forms_data && card.verb_forms_data.meta) return 'verbs';
+    if (card && card.grammar_hint) return 'grammar';
+    return 'examples';
+  }
+
+  function renderAnswerStrip(card) {
+    const strip = document.getElementById('review-answer-strip');
+    const translation = document.getElementById('answer-translation');
+    const meta = document.getElementById('answer-meta');
+    const chips = document.getElementById('answer-verb-chips');
+    if (!strip || !translation || !meta || !chips || !card) return;
+
+    strip.classList.remove('hidden');
+    translation.textContent = card.back || '';
+    const metaParts = [];
+    if (card.part_of_speech_label) metaParts.push(card.part_of_speech_label);
+    if (card.category) metaParts.push(card.category);
+    if (card.level) metaParts.push(card.level);
+    meta.innerHTML = metaParts.map((item) => `<span>${escapeHtml(item)}</span>`).join('');
+
+    const rows = card.verb_forms_data && Array.isArray(card.verb_forms_data.present_rows)
+      ? card.verb_forms_data.present_rows
+      : [];
+    const quickRows = rows.filter((row) => ['ich', 'du', 'er/sie/es'].includes(row.pronoun));
+    if (card.is_verb && quickRows.length) {
+      chips.classList.remove('hidden');
+      chips.innerHTML = quickRows.map((row) => `<span>${escapeHtml(row.pronoun)} <strong>${escapeHtml(row.form)}</strong></span>`).join('');
+    } else {
+      chips.classList.add('hidden');
+      chips.innerHTML = '';
+    }
+  }
+
   function renderGrammarHint(hint) {
     const section = document.getElementById('grammar-hint-section');
     const title = document.getElementById('grammar-hint-title');
@@ -197,10 +248,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function renderVerbForms(data) {
     const verbSection = document.getElementById('verb-section');
+    const verbTab = document.getElementById('tab-verbs');
     const summaryBody = document.getElementById('verb-summary-body');
     const presentBody = document.getElementById('verb-present-body');
     const perfectBody = document.getElementById('verb-perfect-body');
     const pastBody = document.getElementById('verb-past-body');
+    const compactPresent = document.getElementById('verb-compact-present');
+    const compactMeta = document.getElementById('verb-compact-meta');
     window.__verbRenderState = {
       isVerb: !!currentCard.is_verb,
       hasData: !!currentCard.verb_forms_data,
@@ -209,20 +263,22 @@ document.addEventListener('DOMContentLoaded', function () {
       front: currentCard.front,
     };
 
-    if (!verbSection || !summaryBody || !presentBody || !pastBody || !perfectBody) return;
+    if (!verbSection || !summaryBody || !presentBody || !pastBody || !perfectBody || !compactPresent || !compactMeta || !verbTab) return;
 
     if (!data || !data.meta) {
       verbSection.classList.add('hidden');
-      verbSection.style.display = 'none';
+      verbTab.classList.add('hidden');
       summaryBody.innerHTML = '';
       presentBody.innerHTML = '';
       pastBody.innerHTML = '';
       perfectBody.innerHTML = '';
+      compactPresent.innerHTML = '';
+      compactMeta.innerHTML = '';
       return;
     }
 
     verbSection.classList.remove('hidden');
-    verbSection.style.display = '';
+    verbTab.classList.remove('hidden');
     const meta = data.meta || {};
     summaryBody.innerHTML = `
       <tr class="border-b border-purple-100"><th class="px-3 py-2 text-left bg-white/70">Verb</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.verb || '')}</td></tr>
@@ -237,6 +293,21 @@ document.addEventListener('DOMContentLoaded', function () {
       <tr><td class="px-3 py-2 font-medium">Auxiliary</td><td class="px-3 py-2">${escapeHtml(meta.auxiliary || '')}</td></tr>
     `;
     pastBody.innerHTML = renderRows(data.past_rows || []);
+
+    const presentRows = data.present_rows || [];
+    compactPresent.innerHTML = presentRows.map((row) => `
+      <div class="verb-compact-cell">
+        <span>${escapeHtml(row.pronoun || '')}</span>
+        <strong>${escapeHtml(row.form || '')}</strong>
+      </div>
+    `).join('');
+    const pastFirst = (data.past_rows || []).find((row) => row.pronoun === 'ich') || (data.past_rows || [])[0] || {};
+    compactMeta.innerHTML = `
+      <div><span>Verb</span><strong>${escapeHtml(meta.verb || '')}</strong></div>
+      <div><span>Meaning</span><strong>${escapeHtml(meta.meaning || '')}</strong></div>
+      <div><span>Past</span><strong>${escapeHtml(pastFirst.form || '-')}</strong></div>
+      <div><span>Perfect</span><strong>${escapeHtml(meta.auxiliary || '-')} ${escapeHtml(meta.participle || '')}</strong></div>
+    `;
   }
 
   function showCardByIndex(i, pushHistory = true) {
@@ -256,35 +327,12 @@ document.addEventListener('DOMContentLoaded', function () {
     frontEl.innerHTML = renderCardFront(currentCard);
     backEl.textContent = currentCard.back;
     renderLanguageMeta(currentCard);
+    renderAnswerStrip(currentCard);
     fitCurrentFlashcardText();
-    if (verbSection) {
-      verbSection.style.display = currentCard.is_verb ? '' : 'none';
-      verbSection.classList.toggle('hidden', !currentCard.is_verb);
-    }
     renderExamples(currentCard.examples || []);
     renderGrammarHint(currentCard.grammar_hint);
-    if (currentCard.is_verb && currentCard.verb_forms_data && currentCard.verb_forms_data.meta && summaryBody && presentBody && perfectBody && pastBody) {
-      const data = currentCard.verb_forms_data;
-      const meta = data.meta || {};
-      summaryBody.innerHTML = `
-        <tr class="border-b border-purple-100"><th class="px-3 py-2 text-left bg-white/70">Verb</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.verb || '')}</td></tr>
-        <tr class="border-b border-purple-100"><th class="px-3 py-2 text-left bg-white/70">Meaning</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.meaning || '')}</td></tr>
-        <tr><th class="px-3 py-2 text-left bg-white/70">Type</th><td class="px-3 py-2 bg-white">${escapeHtml(meta.type || '')}</td></tr>
-      `;
-
-      const renderRows = (rows) => rows.map((row) => `<tr class="border-b border-purple-100 last:border-b-0"><td class="px-3 py-2 font-medium">${escapeHtml(row.pronoun || '')}</td><td class="px-3 py-2">${escapeHtml(row.form || '')}</td></tr>`).join('');
-      presentBody.innerHTML = renderRows(data.present_rows || []);
-      perfectBody.innerHTML = `
-        <tr class="border-b border-purple-100"><td class="px-3 py-2 font-medium">Participle</td><td class="px-3 py-2">${escapeHtml(meta.participle || '')}</td></tr>
-        <tr><td class="px-3 py-2 font-medium">Auxiliary</td><td class="px-3 py-2">${escapeHtml(meta.auxiliary || '')}</td></tr>
-      `;
-      pastBody.innerHTML = renderRows(data.past_rows || []);
-    } else if (summaryBody && presentBody && perfectBody && pastBody) {
-      summaryBody.innerHTML = '';
-      presentBody.innerHTML = '';
-      perfectBody.innerHTML = '';
-      pastBody.innerHTML = '';
-    }
+    renderVerbForms(currentCard.is_verb ? currentCard.verb_forms_data : null);
+    setActiveReviewTab(defaultReviewTab(currentCard));
     if (currentCard && currentCard.pk) reviewedSet.add(currentCard.pk);
     const reviewedCount = Math.min(reviewedSet.size, cards.length);
     idxEl.textContent = `${reviewedCount} / ${cards.length}`;
@@ -331,6 +379,9 @@ document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('card-next')?.addEventListener('click', function () { flipCardIfNeeded(false); pickAndShow(); });
   document.getElementById('card-prev')?.addEventListener('click', function () { flipCardIfNeeded(false); showPreviousCard(); });
   document.getElementById('card-flip-zone')?.addEventListener('click', flipCard);
+  document.querySelectorAll('[data-review-tab]').forEach((tab) => {
+    tab.addEventListener('click', () => setActiveReviewTab(tab.dataset.reviewTab));
+  });
   window.addEventListener('resize', fitCurrentFlashcardText);
 
   function flipCardIfNeeded(flag) {
