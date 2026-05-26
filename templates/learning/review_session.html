@@ -95,6 +95,12 @@
     <button id="card-next" class="flex items-center gap-2 px-5 sm:px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90">Next</button>
   </div>
 
+  <form method="post" action="{% url 'learning:review_next' %}" id="review-complete-form" class="review-finish-form">
+    {% csrf_token %}
+    <input type="hidden" name="reviewed_pks" id="reviewed-pks-input" value="" />
+    <button type="submit" class="app-button review-finish-button">Complete Review</button>
+  </form>
+
   <section class="review-tabs app-card app-card-pad">
     <div class="review-tab-list" role="tablist" aria-label="Review reference">
       <button type="button" id="tab-examples" class="review-tab is-active" data-review-tab="examples" role="tab" aria-controls="panel-examples" aria-selected="true">Examples</button>
@@ -176,13 +182,6 @@
       </div>
     </div>
   </section>
-
-  <!-- Complete Button -->
-  <form method="post" action="{% url 'learning:review_next' %}" id="review-complete-form" class="review-finish-form">
-    {% csrf_token %}
-    <input type="hidden" name="reviewed_pks" id="reviewed-pks-input" value="" />
-    <button type="submit" class="app-button review-finish-button">Complete Review</button>
-  </form>
 
   <a href="{% url 'learning:index' %}" class="block text-center text-muted-foreground hover:text-foreground">Back</a>
 
